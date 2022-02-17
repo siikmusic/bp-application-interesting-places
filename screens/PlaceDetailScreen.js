@@ -45,13 +45,9 @@ const PlaceDetailScreen = (props) => {
     navigation.replace("PlaceAddScreen");
   };
   const checkAdmin = async () => {
-    var snapshot = await firestore.collection("Users").get();
+    var snapshot = await firestore.collection("Users").doc(auth.currentUser.uid);
+    setCurrentUser(snapshot);
 
-    snapshot.forEach((doc) => {
-      if (doc.data().uid == auth.currentUser.uid) {
-        setCurrentUser(doc);
-      }
-    });
   };
   const navigateHome = () => {
     navigation.goBack();

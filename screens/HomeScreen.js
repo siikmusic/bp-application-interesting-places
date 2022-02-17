@@ -10,17 +10,15 @@ import {
 import { auth, firestore } from "../firebase";
 import { useNavigation } from "@react-navigation/core";
 import Constants from "expo-constants";
-import { faPlusSquare } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
+import {  getVerifiedPlaces } from "../api/PlacesApi";
 import { PlaceList } from "../components/PlaceList";
-import { MaterialIcons, AntDesign } from "@expo/vector-icons";
-import UserRef from "../firebase";
 import { Feather } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
+import categories from "../data/categories.json"
 
 const HomeScreen = () => {
   const navigation = useNavigation();
-  const [places, setPlaces] = useState([]);
+  const [placeList, setPlaceList] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [currentUser, setCurrentUser] = useState({});
 
@@ -28,30 +26,26 @@ const HomeScreen = () => {
     MontserratRegular: require("../assets/fonts/Montserrat-Regular.ttf"),
     MontserratBold: require("../assets/fonts/Montserrat-SemiBold.ttf"),
   });
-  
-  // Sign out of application
-  const handleSignOut = () => {
-    auth
-      .signOut()
-      .then(() => {
-        navigation.replace("Login");
-      })
-      .catch((error) => alert(error.messege));
+  const onPlacesRecieved = (places) => {
+    /*categories.categories.map(category => {
+      console.log(places.filter(place =>{
+        console.log(place.category, category)
+        return place.category == category.toLowerCase()
+      }))
+    })*/
+
+    setPlaceList(places);
   };
   useEffect(() => {
+    getVerifiedPlaces(onPlacesRecieved);
     checkAdmin();
   }, []);
   const checkAdmin = async () => {
-    var snapshot = await firestore.collection("Users").get();
-
-    snapshot.forEach((doc) => {
-      if (doc.data().uid == auth.currentUser.uid) {
-        setCurrentUser(doc);
-        if (doc.data().isAdmin) {
-          setIsAdmin(true);
-        }
-      }
-    });
+    var snapshot = await firestore.collection("Users").doc(auth.currentUser.uid).get();
+    var user = snapshot
+    setCurrentUser(user)
+    if(user.data().isAdmin)
+      setIsAdmin(true)
   };
   const placeAddNavigate = () => {
     navigation.replace("PlaceAddScreen");
@@ -59,6 +53,19 @@ const HomeScreen = () => {
   const verifyPlaceNavigate = () => {
     navigation.replace("VerifyPlacesScreen");
   };
+  const FlatListItemSeparator = () => {
+    return (
+      <View
+        style={{
+          height: 1,
+          width: "80%",
+          backgroundColor: "#888",
+          opacity: 0.7,
+          alignSelf: "center",
+        }}
+      />
+    );
+  }
   return (
     <View style={styles.container}>
       <View style={styles.statusBar} />
@@ -84,7 +91,29 @@ const HomeScreen = () => {
       </View>
 
       <View style={styles.container}>
-        <PlaceList style={{ marginBottom: 200 }} user={currentUser} />
+        <TouchableOpacity onPress={() => {
+          navigation.replace("Preferences")
+        }}>
+          <Text >Sut</Text>
+        </TouchableOpacity>
+            <FlatList
+              data = {categories.categories}
+              ItemSeparatorComponent = { FlatListItemSeparator }
+
+              renderItem={({ item }) => (
+                <>
+                  <View style={{marginLeft: 45, marginBottom: 10}}>
+                    <Text style={styles.header}>{item}</Text>
+                  </View>
+                  
+                  <PlaceList places= {placeList.filter(place =>{
+                    return place.category == item.toLowerCase()
+                  })} category = {item}/>
+                </>
+              )}
+            />
+            
+        
       </View>
     </View>
   );
@@ -113,14 +142,19 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.8,
     shadowRadius: 20,
   },
+  header: {
+    alignSelf: "flex-start",
+    fontFamily: "MontserratBold",
+    fontSize: 30
+  },
   containerTopBar: {
     alignSelf: "stretch",
     backgroundColor: "#000",
     height: 52,
-    flexDirection: "row", // row
+    flexDirection: "row", 
     backgroundColor: "white",
     alignItems: "center",
-    justifyContent: "space-between", // center, space-around
+    justifyContent: "space-between", 
     paddingLeft: 10,
     paddingRight: 10,
   },

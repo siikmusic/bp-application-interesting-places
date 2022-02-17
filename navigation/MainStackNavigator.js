@@ -27,12 +27,11 @@ import ForgotPasswordScreen from "../screens/ForgotPasswordScreen";
 import ResetScreen from "../screens/ResetScreen";
 import PlaceAddScreen from "../screens/PlaceAddScreen";
 import VerifyPlacesScreen from "../screens/VerifyPlacesScreen";
-import DrawerScreen from "../screens/DrawerScreen";
-import AccountScreen from "../screens/AccountScreen";
 import MyListScreen from "../screens/MyListScreen";
 import PlaceDetailScreen from "../screens/PlaceDetailScreen";
 import SettingsScreen from "../screens/SettingsScreen";
 import EditProfileScreen from "../screens/EditProfileScreen";
+import InitPreferencesScreen from "../screens/InitPreferencesScreen";
 
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { useFonts } from "expo-font";
@@ -127,7 +126,6 @@ const TabNavigator = () => {
             iconName = focused ? "person" : "person-outline";
           }
 
-          // You can return any component that you like here!
           return (
             <View
               style={{
@@ -199,6 +197,11 @@ const AppStack = () => {
         <Stack.Screen
           name="Signup"
           component={SignUpScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Preferences"
+          component={InitPreferencesScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen

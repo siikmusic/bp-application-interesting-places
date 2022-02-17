@@ -30,7 +30,8 @@ const MyListScreen = () => {
     MontserratBold: require("../assets/fonts/Montserrat-SemiBold.ttf"),
   });
   const onPlacesRecieved = (placeList) => {
-    setLikedPlaces(placeList);
+    if(likedPlaces !== [])
+      setLikedPlaces(placeList);
   };
 
   const deleteItem = (item) => {
@@ -42,17 +43,19 @@ const MyListScreen = () => {
       filterName.push(element.data().name);
     });
     setLikedPlaces(filterData);
-    deleteLikedPlace(filterName);
+    deleteLikedPlace(item.data().name);
   };
 
   /* useEffect(() => {
     getLikedPlaces(onPlacesRecieved);
   }, []);*/
+  
   useFocusEffect(
     useCallback(() => {
-      console.log("sut");
-      const unsubscribe = getLikedPlaces(onPlacesRecieved);
+      var unsubscribe;
 
+      unsubscribe = getLikedPlaces(onPlacesRecieved);
+      
       return () => unsubscribe;
     }, [])
   );
@@ -114,7 +117,7 @@ const MyListScreen = () => {
                       marginLeft: "auto",
                       marginRight: 10,
                       marginBottom: 10,
-                    }}
+                    }} 
                   >
                     <AntDesign name="closecircle" size={20} color="#FF6962" />
                   </TouchableOpacity>

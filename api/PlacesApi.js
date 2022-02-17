@@ -1,5 +1,6 @@
 import { firestore, auth, storage } from "../firebase";
 import { query, where } from "firebase/firestore";
+import firebase from 'firebase/app'
 
 export function addPlace(place, addComplete) {
   firestore
@@ -18,8 +19,7 @@ export function addPlace(place, addComplete) {
 export function addUser(user, addComplete) {
   firestore
     .collection("Users")
-    .add({
-      uid: user.uid,
+    .doc(auth.currentUser.uid).set({
       email: user.email,
       isAdmin: user.isAdmin,
       likedPlaces: user.likedPlaces,
@@ -30,30 +30,20 @@ export function addUser(user, addComplete) {
 
 export async function getVerifiedPlaces(placesRetrieved) {
   var placeList = [];
-  var snapshot = await firestore.collection("Places").get();
-
-  snapshot.forEach((doc) => {
-    const placeItem = doc.data();
-    if (doc.data().isValidated) {
-      const placeItem = doc.data();
-      placeItem.id = doc.id;
-      placeList.push(placeItem);
-    }
+  await firestore.collection("Places").where("isValidated","==",true).get().then((snapshot) => {
+    snapshot.forEach(doc => {
+      placeList.push(doc.data());
+    })
   });
-
   placesRetrieved(placeList);
 }
 export async function getUnVerifiedPlaces(placesRetrieved) {
   var placeList = [];
 
-  var snapshot = await firestore.collection("Places").get();
-
-  snapshot.forEach((doc) => {
-    if (!doc.data().isValidated) {
-      const placeItem = doc.data();
-      placeItem.id = doc.id;
-      placeList.push(placeItem);
-    }
+  await firestore.collection("Places").where("isValidated","==",false).get().then((snapshot) => {
+    snapshot.forEach(doc => {
+      placeList.push(doc.data());
+    })
   });
   placesRetrieved(placeList);
 }
@@ -67,65 +57,36 @@ export function updatePlace(place, updateComplete) {
     .catch((error) => console.log(error));
 }
 export async function getLikedPlaces(placesRetrieved) {
-  var snapshot = await firestore.collection("Users").get();
-  var currentUser;
-  snapshot.forEach((doc) => {
-    if (doc.data().uid == auth.currentUser.uid) {
-      currentUser = doc;
-    }
-  });
+  var currentUser = await firestore.collection("Users").doc(auth.currentUser.uid).get();
+  var data = currentUser.data();
+  console.log(data.likedPlaces);
   var likedPlaces = [];
-
-  var snapshotPlace = await firestore.collection("Places").get();
-  var currentUser;
-  snapshotPlace.forEach((doc) => {
-    if (currentUser.data().likedPlaces)
-      if (currentUser.data().likedPlaces.includes(doc.data().name))
+  if(data.likedPlaces.length > 0) {
+    await firestore.collection("Places").where("name","in", data.likedPlaces).get().then(snapshot => {
+      snapshot.forEach(doc => {
         likedPlaces.push(doc);
-  });
+      })
+      
+    });
+  }
+
   placesRetrieved(likedPlaces);
 }
-export async function updateUser(place, placeName) {
-  var snapshot = await firestore.collection("Users").get();
-  var currentUser;
-  snapshot.forEach((doc) => {
-    if (doc.data().uid == auth.currentUser.uid) {
-      currentUser = doc;
-    }
-  });
-  var likedPlaces = currentUser.data().likedPlaces;
-  if (currentUser.data().likedPlaces)
-    if (!currentUser.data().likedPlaces.includes(placeName))
-      likedPlaces.push(placeName);
+export async function addLiked(placeName) {
+  var uid = auth.currentUser.uid;
 
-  firestore
-    .collection("Users")
-    .doc(currentUser.id)
-    .set({
-      email: currentUser.data().email,
-      isAdmin: currentUser.data().isAdmin,
-      likedPlaces: likedPlaces,
-      uid: currentUser.data().uid,
+  firestore.collection("Users").doc(uid)
+    .update({
+
+      likedPlaces: firebase.firestore.FieldValue.arrayUnion(placeName),
     })
     .catch((error) => console.log(error));
 }
-export async function deleteLikedPlace(likedPlaces) {
-  var snapshot = await firestore.collection("Users").get();
-  var currentUser;
-  snapshot.forEach((doc) => {
-    if (doc.data().uid == auth.currentUser.uid) {
-      currentUser = doc;
-    }
-  });
+export async function deleteLikedPlace(placeName) {
+  var uid = auth.currentUser.uid;
+  firestore.collection("Users").doc(uid).update({
 
-  firestore
-    .collection("Users")
-    .doc(currentUser.id)
-    .set({
-      email: currentUser.data().email,
-      isAdmin: currentUser.data().isAdmin,
-      likedPlaces: likedPlaces,
-      uid: currentUser.data().uid,
+      likedPlaces: firebase.firestore.FieldValue.arrayRemove(placeName),
     })
     .catch((error) => console.log(error));
 }

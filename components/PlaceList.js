@@ -3,16 +3,11 @@ import {
   Text,
   View,
   FlatList,
-  SafeAreaView,
-  ListItem,
   StyleSheet,
-  Image,
   ImageBackground,
   TouchableOpacity,
-  Animated,
 } from "react-native";
-import PlaceRef, { auth } from "../firebase";
-import { addPlace, getVerifiedPlaces, updateUser } from "../api/PlacesApi";
+import { addLiked } from "../api/PlacesApi";
 import * as Location from "expo-location";
 import { getDistance } from "geolib";
 import { AntDesign } from "@expo/vector-icons";
@@ -21,39 +16,28 @@ import { useNavigation } from "@react-navigation/core";
 
 export function PlaceList(props) {
   [currentPlaceItem, setCurrentPlaceItem] = useState(null);
-  const [dist, setDist] = useState(0);
   [location, setLocation] = useState({
     latitude: 137,
     longitude: -22,
   });
-  [placeList, setPlaceList] = useState([]);
-
+  [placeList, setPlaceList] = useState(null);
+  const places = props.places
+  console.log("som")
   const [loaded] = useFonts({
     MontserratRegular: require("../assets/fonts/Montserrat-Regular.ttf"),
     MontserratBold: require("../assets/fonts/Montserrat-SemiBold.ttf"),
+    MontserratLight: require("../assets/fonts/Montserrat-Light.ttf"),
   });
   const navigation = useNavigation();
 
-  const onPlacesRecieved = (places) => {
-    setPlaceList(places);
-  };
-  const FlatListItemSeparator = () => {
-    return (
-      <View
-        style={{
-          height: 2,
-          width: "100%",
-          backgroundColor: "#555",
-        }}
-      />
-    );
-  };
   const Capitalize = (str) => {
     return str.charAt(0).toUpperCase() + str.slice(1);
   };
-
+  useEffect(() => {
+    setPlaceList(props.places)
+    console.log("sut")
+  }, [])
   useEffect(async () => {
-    getVerifiedPlaces(onPlacesRecieved);
 
     let { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== "granted") {
@@ -76,15 +60,15 @@ export function PlaceList(props) {
   };
   return (
     <View style={styles.container}>
-      <Animated.FlatList
-        data={placeList}
+      <FlatList
+        data={places}
         keyExtractor={(item, index) => {
           return index;
         }}
-        showsVerticalScrollIndicator={false}
-        style={{ marginBottom: 90 }}
-        ItemSeparatorComponent={FlatListItemSeparator}
+        horizontal={true}
+        showsHorizontalScrollIndicator={false}
         renderItem={({ item }) => (
+          
           <View style={styles.place}>
             <TouchableOpacity
               onPress={() =>
@@ -97,19 +81,7 @@ export function PlaceList(props) {
               <ImageBackground style={styles.image} source={{ uri: item.uri }}>
                 <TouchableOpacity
                   onPress={() => {
-                    var user = props.user;
-                    var likedPlaces = user.data().likedPlaces;
-                    if (user.data().likedPlaces)
-                      if (!user.data().likedPlaces.includes(item.name))
-                        likedPlaces.push(item.name);
-                    var newUser = {
-                      email: user.data().email,
-                      isAdmin: user.data().isAdmin,
-                      likedPlaces: likedPlaces,
-                      uid: user.data().uid,
-                    };
-
-                    updateUser(newUser, item.name);
+                    addLiked(item.name);
                   }}
                 >
                   <AntDesign
@@ -123,17 +95,16 @@ export function PlaceList(props) {
                 </TouchableOpacity>
               </ImageBackground>
             </TouchableOpacity>
+            <View>
+            <Text style={styles.name}>{item.name}</Text>
+
+            </View>
             <View style={styles.row}>
-              <View style={styles.categoryContainer}>
-                <Text style={styles.category}>{Capitalize(item.category)}</Text>
-              </View>
-              <View style={styles.categoryContainer2}>
-                <Text style={styles.category}>{getDist(item)}km</Text>
-              </View>
+
+              <Text style={styles.category}>{getDist(item)}km away</Text>
+              
             </View>
-            <View style={{ marginBottom: "10%" }}>
-              <Text style={styles.heading1}>{item.name}</Text>
-            </View>
+            
           </View>
         )}
       />
@@ -144,9 +115,8 @@ export function PlaceList(props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    width: "80%",
     alignItems: "center",
+    marginLeft:50
   },
   row: {
     flex: 1,
@@ -154,75 +124,24 @@ const styles = StyleSheet.create({
     alignContent: "space-around",
   },
   categoryContainer: {
-    marginTop: "2%",
     alignItems: "center",
     backgroundColor: "#c9f1fd",
-    maxWidth: "50%",
     borderRadius: 3,
   },
   categoryContainer2: {
-    marginTop: "2%",
     alignItems: "center",
     backgroundColor: "#c9f1fd",
-    maxWidth: "35%",
     borderRadius: 3,
     marginLeft: "auto",
   },
   category: {
     fontFamily: "MontserratRegular",
-    paddingHorizontal: 10,
+    paddingVertical: 10
   },
-  inputContainer: {
-    width: "80%",
-    borderBottomWidth: 1,
-    borderBottomColor: "grey",
-    marginBottom: 15,
-  },
-  input: {
-    paddingHorizontal: 15,
-    paddingVertical: 5,
-    borderRadius: 10,
-  },
-  buttonContainer: {
-    width: 250,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 40,
-  },
-  button1: {
-    backgroundColor: "#29c5F6",
-    width: "100%",
-    padding: 15,
-    marginBottom: 10,
-    borderRadius: 8,
-  },
-  button2: {
-    backgroundColor: "white",
-    width: "100%",
-    padding: 15,
-    borderRadius: 8,
-  },
-  buttonOutline: {
-    backgroundColor: "white",
-    marginTop: 5,
-  },
-  buttonOutlineTextWhite: {
-    textAlign: "center",
-    color: "white",
-  },
-  buttonOutlineTextBlue: {
-    textAlign: "center",
-    color: "#29c5F6",
-  },
-  buttonOutlineTextBlueNoCenter: {
-    fontWeight: "bold",
-    color: "#29c5F6",
-  },
-  textForgot: {
-    marginTop: 5,
-  },
+
   header: {
     alignSelf: "flex-start",
+    fontFamily: "MontserratRegular",
     marginLeft: "10%",
   },
   headerCenter: {
@@ -246,8 +165,14 @@ const styles = StyleSheet.create({
     color: "black",
     fontFamily: "MontserratRegular",
   },
+  name: {
+    fontFamily: "MontserratLight",
+    fontSize: 30,
+
+  },
   place: {
-    marginTop: "10%",
+    
+    marginRight: 20,
   },
   image: {
     flex: 1,

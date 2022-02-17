@@ -16,11 +16,11 @@ import { useNavigation } from "@react-navigation/core";
 import { firestore, PlaceRef, storage } from "../firebase";
 import { addPlace } from "../api/PlacesApi";
 import * as ImagePicker from "expo-image-picker";
-import Map from "../components/Map";
 import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
 import { useFonts } from "expo-font";
 import { Ionicons } from "@expo/vector-icons";
+import categories from "../data/categories.json"
 
 const PlaceAddScreen = () => {
   const navigation = useNavigation();
@@ -140,6 +140,9 @@ const PlaceAddScreen = () => {
     })();
   }, []);
 
+  const PickerItems = categories.categories.map((i, key) => (
+    <Picker.Item label={i.toString()} key = {key }value={i.toString()} />
+));
   const returnToHome = useEffect(() => {
     const backAction = () => {
       navigation.replace("TabNavigator");
@@ -216,16 +219,7 @@ const PlaceAddScreen = () => {
         style={{ height: 50, width: 150 }}
         onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}
       >
-        <Picker.Item label="History" value="history" />
-        <Picker.Item label="Nature" value="nature" />
-        <Picker.Item label="Food" value="food" />
-        <Picker.Item label="Urbex" value="urbex" />
-        <Picker.Item label="Beach" value="beach" />
-        <Picker.Item label="Ethnic" value="ethnic" />
-        <Picker.Item label="Art" value="art" />
-        <Picker.Item label="Zoo" value="zoo" />
-        <Picker.Item label="Landmark" value="landmark" />
-        <Picker.Item label="Entertainment" value="entertainment" />
+          {PickerItems}
       </Picker>
       <View style={styles.buttonContainer}>
         <TouchableOpacity onPress={showImagePicker} style={styles.button1}>

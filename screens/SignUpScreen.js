@@ -7,18 +7,15 @@ import {
   View,
   TouchableOpacity,
   BackHandler,
-  Alert,
   ImageBackground,
   Dimensions,
 } from "react-native";
 import { auth } from "../firebase";
 import { useNavigation } from "@react-navigation/core";
-import { FontAwesome } from "react-native-vector-icons";
 import { addUser } from "../api/PlacesApi";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
-import AppLoading from "expo-app-loading";
-import { AntDesign } from "@expo/vector-icons";
+
 import { Feather } from "@expo/vector-icons";
 
 const LoginScreen = () => {
@@ -27,23 +24,17 @@ const LoginScreen = () => {
   const [passwordValidation, setPasswordValidation] = useState("");
   const [secureTextEntry, setSecureTextEntry] = useState(true);
 
-  const [loaded] = useFonts({
+  const [] = useFonts({
     MontserratRegular: require("../assets/fonts/Montserrat-Regular.ttf"),
     MontserratBold: require("../assets/fonts/Montserrat-SemiBold.ttf"),
   });
+
   const navigation = useNavigation();
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) {
-        navigation.replace("TabNavigator");
-      }
-    });
-    return unsubscribe;
-  }, []);
-  const onUserAdded = (user) => {
-    alert("User added");
-    navigation.replace("Login");
+
+  const onUserAdded = () => {
+    navigation.replace("Preferences");
   };
+
   const handleSignUp = () => {
     if (password == passwordValidation) {
       auth
@@ -51,7 +42,6 @@ const LoginScreen = () => {
         .then((userCredentials) => {
           const user = userCredentials.user;
           var userRef = {
-            uid: user.uid,
             email: user.email,
             isAdmin: false,
             likedPlaces: [],

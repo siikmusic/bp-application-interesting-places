@@ -37,7 +37,6 @@ const ProfileScreen = () => {
   );
   // Sign out of application
   const handleSignOut = () => {
-    console.log("Sut");
     auth
       .signOut()
       .then(() => {
