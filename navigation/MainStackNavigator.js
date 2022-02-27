@@ -32,9 +32,8 @@ import PlaceDetailScreen from "../screens/PlaceDetailScreen";
 import SettingsScreen from "../screens/SettingsScreen";
 import EditProfileScreen from "../screens/EditProfileScreen";
 import InitPreferencesScreen from "../screens/InitPreferencesScreen";
+import SettingScreen from "../screens/SettingScreen";
 
-import { createDrawerNavigator } from "@react-navigation/drawer";
-import { useFonts } from "expo-font";
 import { Ionicons } from "@expo/vector-icons";
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -98,6 +97,11 @@ const SettingStack = () => {
       <Stack.Screen
         name="Edit Profile"
         component={EditProfileScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Settings"
+        component={SettingScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen

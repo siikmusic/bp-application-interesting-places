@@ -5,12 +5,13 @@ import { useFonts } from "expo-font";
 import Constants from "expo-constants";
 import data from "../data/preferences.json"
 import { Feather } from "@expo/vector-icons";
-
+import { updateInitForm } from '../api/PlacesApi';
 const InitPreferencesScreen = () => {
     const navigation = useNavigation();
     const [preferences, setPreferences] = useState(data.preferences);
     const [preferenceString, setPreferenceString] = useState("");
     const handleContinue = () => {
+        updateInitForm(preferenceString);
         navigation.replace("TabNavigator");
     }
     const [] = useFonts({
@@ -26,9 +27,9 @@ const InitPreferencesScreen = () => {
             setPreferences(pref)
             const newPreferenceString = preferenceString.concat(item," ")
             setPreferenceString(newPreferenceString)
-            console.log(newPreferenceString)
         }
     }
+    
   return (
     <View>
         <View style={styles.statusBar}></View>

@@ -7,9 +7,6 @@ import {
   View,
   TouchableOpacity,
   BackHandler,
-  Button,
-  Image,
-  SafeAreaView,
   Picker,
 } from "react-native";
 import { useNavigation } from "@react-navigation/core";
@@ -22,7 +19,8 @@ import { useFonts } from "expo-font";
 import { Ionicons } from "@expo/vector-icons";
 import categories from "../data/categories.json"
 
-const PlaceAddScreen = () => {
+const PlaceAddScreen = ({route}) => {
+  const geofire = require('geofire-common');
   const navigation = useNavigation();
   const [name, setName] = useState("");
   const [info, setInfo] = useState("");
@@ -30,15 +28,17 @@ const PlaceAddScreen = () => {
   const [downloadUrl, setUrl] = useState("");
   const [selectedValue, setSelectedValue] = useState("");
   const [mapRegion, setMapRegion] = useState({
-    latitude: 37,
-    longitude: -122,
+    latitude: route.params.location.latitude,
+    longitude: route.params.location.longitude,
     longitudeDelta: 0.0922,
     latitudeDelta: 0.0421,
   });
   const [pin, setPin] = useState({
-    latitude: 37,
-    longitude: -122,
-  });
+    latitude: route.params.location.latitude,
+    longitude: route.params.location.longitude
+  }
+
+  );
   const [loaded] = useFonts({
     MontserratRegular: require("../assets/fonts/Montserrat-Regular.ttf"),
     MontserratBold: require("../assets/fonts/Montserrat-SemiBold.ttf"),
@@ -88,16 +88,18 @@ const PlaceAddScreen = () => {
       name: "",
       uri: "",
       category: "",
-      isValidated: false,
+      geohash: "",
+      numberOfLikes: 0,
+      isValidated: true,
     };
+
     if (pickedImagePath) {
       const uploadUri = pickedImagePath;
       let filename = uploadUri.substring(uploadUri.lastIndexOf("/") + 1);
       const response = await fetch(uploadUri);
       const blob = await response.blob();
-
+      const hash = geofire.geohashForLocation([pin.latitude, pin.longitude]);
       const ref = storage.ref().child(filename);
-      console.log(pin);
       await ref.put(blob);
       const url = await ref
         .getDownloadURL()
@@ -109,6 +111,7 @@ const PlaceAddScreen = () => {
             place.info = info;
             place.name = name;
             place.category = selectedValue;
+            place.geohash = hash;
             place.location = pin;
             addPlace(place, onPlaceAdded);
           }
@@ -204,12 +207,13 @@ const PlaceAddScreen = () => {
         >
           <Marker
             draggable
-            coordinate={pin}
+            coordinate={pin}            
             onDragEnd={(e) => {
               setPin({
                 latitude: e.nativeEvent.coordinate.latitude,
                 longitude: e.nativeEvent.coordinate.longitude,
               });
+
             }}
           />
         </MapView>

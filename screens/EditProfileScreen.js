@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
   KeyboardAvoidingView,
   Image,
 } from "react-native";
-import { auth, firestore, storage } from "../firebase";
+import { auth, storage } from "../firebase";
 import { Avatar, Title, Caption, TouchableRipple } from "react-native-paper";
 import Animated from "react-native-reanimated";
 import BottomSheet from "reanimated-bottom-sheet";
@@ -17,6 +17,8 @@ import Constants from "expo-constants";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/core";
+import {Slider} from '@miblanchard/react-native-slider';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const EditProfileScreen = () => {
   const [image, setImage] = useState(
@@ -27,11 +29,11 @@ const EditProfileScreen = () => {
   const [pickedImagePath, setPickedImagePath] = useState(null);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-
+  const [distance, setDistance] = useState(50)
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const navigation = useNavigation();
-
+    
   const showImagePicker = async () => {
     const permissionResult =
       await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -47,6 +49,27 @@ const EditProfileScreen = () => {
       setPickedImagePath(result.uri);
     }
   };
+  const storeDistance = async () => {
+    try {
+      await AsyncStorage.setItem('@distance', distance.toString())
+    } catch (e) {
+      // saving error
+    }
+  }
+  const getDistance = async () => {
+    try {
+      const value = await AsyncStorage.getItem('@distance')
+      if(value !== null) {
+        setDistance(value)
+      }
+    } catch(e) {
+      // error reading value
+    }
+  }
+
+  useEffect(() => {
+    getDistance();
+  },[])
 
   const openCamera = async () => {
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
@@ -62,7 +85,9 @@ const EditProfileScreen = () => {
       setPickedImagePath(result.uri);
     }
   };
-
+  const updateDistance = (distance) => {
+    setDistance(distance);
+  }
   const submit = async () => {
     const fullName = firstName.concat(" ", lastName);
     /*console.log(fullName);
@@ -84,7 +109,7 @@ const EditProfileScreen = () => {
       .then(function (phoneCredential) {
         return auth.currentUser.updatePhoneNumber(phoneCredential);
       });*/
-
+    storeDistance();
     if (pickedImagePath) {
       const uploadUri = pickedImagePath;
       let filename = uploadUri.substring(uploadUri.lastIndexOf("/") + 1);
@@ -184,7 +209,10 @@ const EditProfileScreen = () => {
                 color: "black",
               },
             ]}
-          />
+          >
+              {auth.currentUser.displayName}
+
+            </TextInput>
         </View>
         <View style={styles.action}>
           <TextInput
@@ -198,11 +226,13 @@ const EditProfileScreen = () => {
                 color: "black",
               },
             ]}
-          />
+          >
+            {auth.currentUser.displayName}
+            </TextInput>
         </View>
         <View style={styles.action}>
           <TextInput
-            placeholder="Phone"
+            placeholder="Enter Your Phone Number"
             onChangeText={(text) => setPhone(text)}
             placeholderTextColor="#666666"
             keyboardType="number-pad"
@@ -213,7 +243,10 @@ const EditProfileScreen = () => {
                 color: "black",
               },
             ]}
-          />
+          >
+              {auth.currentUser.phone}
+
+            </TextInput>
         </View>
         <View style={styles.action}>
           <TextInput
@@ -228,9 +261,24 @@ const EditProfileScreen = () => {
                 color: "black",
               },
             ]}
-          />
-        </View>
+          >
+            {auth.currentUser.email}
+          </TextInput>
 
+        </View>
+        <View>
+          <View style={styles.distanceSliderText}>
+            <Text>
+              Distance Preference
+            </Text>
+            <Text style={{color: "grey"}}>
+              {distance}km
+            </Text>
+          </View>
+
+          <Slider trackStyle = {{backgroundColor: "white"}}   step = {1} minimumValue = {25} maximumValue = {200} value = {distance} onValueChange={value => updateDistance(value)}/>
+        </View>
+        
         <TouchableOpacity style={styles.commandButton} onPress={submit}>
           <Text style={styles.panelButtonTitle}>Submit</Text>
         </TouchableOpacity>
@@ -352,4 +400,8 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     color: "#05375a",
   },
+  distanceSliderText: {
+    flexDirection: "row",
+    justifyContent: "space-between"
+  }
 });

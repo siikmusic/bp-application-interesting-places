@@ -9,7 +9,6 @@ import {
 import {
   Avatar,
   Title,
-  Caption,
   Text,
   TouchableRipple,
 } from "react-native-paper";
@@ -31,7 +30,7 @@ const ProfileScreen = () => {
   useFocusEffect(
     useCallback(() => {
       const unsubscribe = setUser(auth.currentUser);
-
+      
       return () => unsubscribe;
     }, [])
   );
@@ -82,7 +81,7 @@ const ProfileScreen = () => {
 
   const DisplayAvatar = () => {
     var uri = user.photoURL;
-    console.log(uri);
+    console.log(uri)
     if (uri) {
       return (
         <Avatar.Image source={{ uri: uri }} size={100} style={styles.avatar} />
@@ -170,7 +169,7 @@ const ProfileScreen = () => {
               <Text style={styles.menuItemText}>FAQ</Text>
             </View>
           </TouchableRipple>
-          <TouchableRipple onPress={() => {}}>
+          <TouchableRipple onPress={() => {navigation.navigate("Edit Profile");}}>
             <View style={styles.menuItem}>
               <MaterialIcons name="settings" size={24} color="white" />
               <Text style={styles.menuItemText}>Settings</Text>
@@ -271,11 +270,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  menuWrapper: {},
+  menuWrapper: {
+
+  },
   menuItem: {
     flexDirection: "row",
     paddingVertical: 15,
     marginLeft: 20,
+
   },
   menuItemText: {
     color: "#fff",

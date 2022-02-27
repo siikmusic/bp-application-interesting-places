@@ -9,7 +9,8 @@ import {
   FlatList,
   ImageBackground,
 } from "react-native";
-import { getLikedPlaces, deleteLikedPlace } from "../api/PlacesApi";
+import { getLikedPlacesNoUser, deleteLikedPlace
+} from "../api/PlacesApi";
 import Constants from "expo-constants";
 import { Dimensions } from "react-native";
 import { MaterialIcons, AntDesign } from "@expo/vector-icons";
@@ -18,6 +19,7 @@ import * as Location from "expo-location";
 import { getDistance } from "geolib";
 import { useFonts } from "expo-font";
 import { useFocusEffect } from "@react-navigation/native";
+import { auth, firestore } from "../firebase";
 
 const MyListScreen = () => {
   const [likedPlaces, setLikedPlaces] = useState([]);
@@ -51,10 +53,11 @@ const MyListScreen = () => {
   }, []);*/
   
   useFocusEffect(
-    useCallback(() => {
+    useCallback( () => {
       var unsubscribe;
 
-      unsubscribe = getLikedPlaces(onPlacesRecieved);
+      unsubscribe = getLikedPlacesNoUser(onPlacesRecieved);
+
       
       return () => unsubscribe;
     }, [])

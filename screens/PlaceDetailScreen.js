@@ -1,37 +1,25 @@
 import React, { useEffect, useState } from "react";
 import {
-  TextInput,
-  KeyboardAvoidingView,
   StyleSheet,
   Text,
   View,
   TouchableOpacity,
-  BackHandler,
-  Alert,
   ImageBackground,
   Dimensions,
-  Image,
   SafeAreaView,
-  StatusBar,
   ScrollView,
 } from "react-native";
 
 import { auth, firestore } from "../firebase";
 import { useNavigation } from "@react-navigation/core";
-import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { MaterialIcons } from "@expo/vector-icons";
+
 import { useFonts } from "expo-font";
-import AppLoading from "expo-app-loading";
-import { FontAwesome } from "react-native-vector-icons";
-import { AntDesign } from "@expo/vector-icons";
-import { Feather } from "@expo/vector-icons";
+
 import Constants from "expo-constants";
-import { updateUser } from "../api/PlacesApi";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, AntDesign } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import MapView, { Marker } from "react-native-maps";
-import { getLikedPlaces } from "../api/PlacesApi";
 
 const PlaceDetailScreen = (props) => {
   const [loaded] = useFonts({
@@ -40,7 +28,7 @@ const PlaceDetailScreen = (props) => {
   });
   const [currentUser, setCurrentUser] = useState({});
   const navigation = useNavigation();
-
+  const [isLiked, setIsLiked] = useState()
   const placeAddNavigate = () => {
     navigation.replace("PlaceAddScreen");
   };
@@ -68,6 +56,9 @@ const PlaceDetailScreen = (props) => {
     checkAdmin();
   }, []);
 
+  useEffect(() => {
+    setIsLiked(props.route.params.isLiked);  
+  },[props.route.params.isLiked])
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.head}>
@@ -124,7 +115,7 @@ const PlaceDetailScreen = (props) => {
         <View>
           <View style={{ flexDirection: "row" }}>
             <Text style={styles.heading1}>About</Text>
-            <View style={{ marginLeft: "auto" }}>
+           <View style={{ marginLeft: "auto" }}>
               <TouchableOpacity onPress={() => {}}></TouchableOpacity>
             </View>
           </View>

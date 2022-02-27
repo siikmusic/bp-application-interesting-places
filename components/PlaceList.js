@@ -1,4 +1,4 @@
-import React, { Component, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Text,
   View,
@@ -6,110 +6,207 @@ import {
   StyleSheet,
   ImageBackground,
   TouchableOpacity,
+  RefreshControl
 } from "react-native";
-import { addLiked } from "../api/PlacesApi";
+import { addLiked, deleteLikedPlace } from "../api/PlacesApi";
 import * as Location from "expo-location";
 import { getDistance } from "geolib";
 import { AntDesign } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
 import { useNavigation } from "@react-navigation/core";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from "@react-navigation/native";
 
 export function PlaceList(props) {
-  [currentPlaceItem, setCurrentPlaceItem] = useState(null);
-  [location, setLocation] = useState({
+  const [locationLoaded, setLocationLoaded] = useState(false);
+  const [filtered, setFiltered] = useState(false);
+  const [placeList, setPlaceList] = useState([]);
+  const[location, setLocation] = useState({
     latitude: 137,
     longitude: -22,
   });
-  [placeList, setPlaceList] = useState(null);
-  const places = props.places
-  console.log("som")
+  const [distance, setDistance] = useState()  
+  const [refreshing, setRefreshing] = useState(false);
+  const [distanceUpdated, setDistanceUpdated] = useState(false);
+  const [likedPlaceNames, setLikedPlaceNames] = useState([]);
+  
+  useEffect(() => {
+    var likedPlaceNames = []
+    props.likedPlace.forEach(place =>{
+      likedPlaceNames.push(place.data().name)
+    })
+    setLikedPlaceNames(likedPlaceNames);
+  },[props.likedPlace])
+
+  useEffect(() => {
+    if(typeof props.location !== 'undefined')
+      setLocation(props.location)
+  },[props.location])
+
+  useEffect(() => {
+
+    if(props.refreshing)
+      setRefreshing(true);
+    else
+      setRefreshing(false)
+
+  },[props.refreshing])
+  useEffect(() => {
+    setDistanceUpdated(props.distanceUpdated)
+  },[props.distanceUpdated])
+  useEffect(() => {
+    if(locationLoaded){
+      var filtered = []
+      filtered =props.places;
+      if(props.category.toString() === "Recommended" ) {
+        filtered.forEach((place) => {
+          console.log(props.category.toString())
+        })
+      }
+      else if(props.category.toString() === "Most Popular")
+      {}
+      else{ 
+        filtered.sort((a,b) =>(getDist(a) >= getDist(b)) ? 1: -1)
+
+      }
+      console.log("filtered")
+      setPlaceList(filtered)
+      setFiltered(true)
+    } 
+
+  },[locationLoaded,distance, refreshing,distanceUpdated])
+  useFocusEffect(
+    useCallback(() => {
+      var unsubscribe;
+
+      unsubscribe = fetchDistance();
+      return () => unsubscribe;
+    }, [])
+  );
+  const fetchDistance = async () => {
+    try {
+      const value = await AsyncStorage.getItem('@distance')
+      if(value !== null) {
+        setDistance(value)
+      }
+    } catch(e) {
+      console.log(e)
+    }
+  }
   const [loaded] = useFonts({
     MontserratRegular: require("../assets/fonts/Montserrat-Regular.ttf"),
     MontserratBold: require("../assets/fonts/Montserrat-SemiBold.ttf"),
     MontserratLight: require("../assets/fonts/Montserrat-Light.ttf"),
   });
-  const navigation = useNavigation();
+  const navigation = useNavigation(); 
 
-  const Capitalize = (str) => {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-  };
-  useEffect(() => {
-    setPlaceList(props.places)
-    console.log("sut")
-  }, [])
-  useEffect(async () => {
+  
 
-    let { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== "granted") {
-      return;
-    }
+  useEffect( () => {
+    setLocationLoaded(true)
 
-    let location = await Location.getCurrentPositionAsync({});
-    setLocation({
-      longitude: location.coords.longitude,
-      latitude: location.coords.latitude,
-    });
-  }, []);
+  },[location]);
   const getDist = (item) => {
-    if (item.location) {
+    if (item.location && location) {
       var dis = getDistance(location, item.location);
       return Math.floor(dis / 1000);
     } else {
       return 0;
     }
   };
-  return (
-    <View style={styles.container}>
-      <FlatList
-        data={places}
-        keyExtractor={(item, index) => {
-          return index;
-        }}
-        horizontal={true}
-        showsHorizontalScrollIndicator={false}
-        renderItem={({ item }) => (
-          
-          <View style={styles.place}>
-            <TouchableOpacity
-              onPress={() =>
-                navigation.navigate("Place Details", {
-                  place: item,
-                  loc: getDist(item),
-                })
-              }
-            >
-              <ImageBackground style={styles.image} source={{ uri: item.uri }}>
-                <TouchableOpacity
-                  onPress={() => {
-                    addLiked(item.name);
-                  }}
-                >
-                  <AntDesign
-                    style={{
-                      margin: 10,
+  if(filtered)
+    return (
+      <View style={styles.container}>
+        <FlatList
+          data={placeList} 
+          keyExtractor={(item, index) => {
+            return index;
+          }}
+          getItemLayout={(data, index) => (
+            {length: 300, offset: 300 * index, index}
+          )}
+          extraData={props.places}
+          initialNumToRender={3}
+          horizontal={true}
+          showsHorizontalScrollIndicator={false}
+          extraData={refreshing, distanceUpdated, likedPlaceNames}
+          renderItem={({ item }) => (
+            <View style={styles.place}>
+
+              <TouchableOpacity
+                onPress={() =>{
+                  console.log(props.category)
+                  navigation.navigate("Place Details", {
+                    place: item,
+                    loc: getDist(item),
+                    isLiked: likedPlaceNames.includes(item.name)
+                  })
+                }
+
+                }
+              >
+                <ImageBackground style={styles.image} source={{ uri: item.uri }}>
+                  {likedPlaceNames.includes(item.name) ? (
+                    <TouchableOpacity
+                    onPress={() => {
+                      deleteLikedPlace(item.name);
+                      setLikedPlaceNames(likedPlaceNames.filter((placeName) =>(placeName !== item.name)))                   
                     }}
-                    name="heart"
-                    size={24}
-                    color="white"
-                  />
-                </TouchableOpacity>
-              </ImageBackground>
-            </TouchableOpacity>
-            <View>
-            <Text style={styles.name}>{item.name}</Text>
+                  >
+                    <AntDesign
+                      style={{
+                        shadowColor: "#000",
+                        margin: 10,
 
-            </View>
-            <View style={styles.row}>
+                      }}
+                      name="heart"
+                      size={24}
+                      color="#fb3958"
+                    />
+                  </TouchableOpacity>
+                  ):(
+                    <TouchableOpacity
+                    onPress={() => {
+                      addLiked(item.name);
+                      setLikedPlaceNames([...likedPlaceNames, item.name]);
+                    }}
+                  >
+                    <AntDesign
+                      style={{
+                        borderColor: "#fff",
+                        borderRadius: 5,
+                        margin: 10,
+                      }}
+                      name="heart"
+                      size={24}
+                      color="white"
+                    />
+                  </TouchableOpacity>
+                  )}
+                  
+                </ImageBackground>
+              </TouchableOpacity>
+              <View style={{flex: 1, flexDirection: 'row', width: 300}}>
+                <View style={{flexGrow: 1, flexDirection: 'row'}}>
+                  <Text style={styles.name}>{item.name}</Text>
+                </View>
+              </View>
 
-              <Text style={styles.category}>{getDist(item)}km away</Text>
-              
+              <View style={styles.row}>
+
+                <Text style={styles.category}>{getDist(item)}km away</Text>
+                
+              </View>
+               
             </View>
-            
-          </View>
-        )}
-      />
-    </View>
-  );
+          )}
+        />
+      </View>
+ 
+    );
+    else{
+      return(<View></View>)
+    }
 }
 
 const styles = StyleSheet.create({
@@ -167,8 +264,8 @@ const styles = StyleSheet.create({
   },
   name: {
     fontFamily: "MontserratLight",
-    fontSize: 30,
-
+    fontSize: 25,
+    flex: 1
   },
   place: {
     

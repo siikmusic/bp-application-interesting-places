@@ -1,64 +1,272 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   StyleSheet,
   Text,
   View,
   TouchableOpacity,
   FlatList,
-  Image,
+  RefreshControl,
 } from "react-native";
 import { auth, firestore } from "../firebase";
 import { useNavigation } from "@react-navigation/core";
 import Constants from "expo-constants";
-import {  getVerifiedPlaces } from "../api/PlacesApi";
+import {  getVerifiedPlaces, getMostPopularPlaces,getLikedPlaces } from "../api/PlacesApi";
 import { PlaceList } from "../components/PlaceList";
 import { Feather } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
 import categories from "../data/categories.json"
+import {Corpus, Similarity} from "tiny-tfidf"
+import {getPreference} from "../recommendation/Recommendation"
+import * as Location from "expo-location";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect, useIsFocused } from "@react-navigation/native";
+import GetLocation from 'react-native-get-location'
+
 
 const HomeScreen = () => {
   const navigation = useNavigation();
   const [placeList, setPlaceList] = useState([]);
+  const [likedPlaceList, setLikedPlaceList] = useState([]);
+
   const [isAdmin, setIsAdmin] = useState(false);
   const [currentUser, setCurrentUser] = useState({});
-
+  const [recommendedPlaces, setRecommendedPlaces] = useState([])
+  const [sortedPlaces, setSortedPlaces] = useState([])
+  const [distanceUpdated, setDistanceUpdated] = useState(false)
+  const [popularPlaces, setPopularPlaces] = useState([])
+  const [location, setLocation] = useState()
+  const [locationLoaded, setLocationLoaded] = useState(false)
+  const [distance, setDistance] = useState()
+  const [loading, setLoading] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
   const [loaded] = useFonts({
     MontserratRegular: require("../assets/fonts/Montserrat-Regular.ttf"),
     MontserratBold: require("../assets/fonts/Montserrat-SemiBold.ttf"),
   });
   const onPlacesRecieved = (places) => {
-    /*categories.categories.map(category => {
-      console.log(places.filter(place =>{
-        console.log(place.category, category)
-        return place.category == category.toLowerCase()
-      }))
-    })*/
-
     setPlaceList(places);
   };
+  const onPopularPlacesReceived = (popularPlaces) => {
+    setPopularPlaces(popularPlaces);
+
+  }
+  const onLikedPlacesReceived = (likedPlaces) => {
+    setLikedPlaceList(likedPlaces); 
+    
+  }
   useEffect(() => {
-    getVerifiedPlaces(onPlacesRecieved);
+    if(placeList.length > 0) {
+      console.log("loaded")
+      if(Object.keys(currentUser).length > 0)
+        console.log("user loaded")
+        if(likedPlaceList.length > 0)
+          setRecommendedPlaces(getRecommendation());
+    }
+      
+
+  },[placeList,currentUser,likedPlaceList])
+  const fetchLocation = async () => {
+    
+    let { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== "granted") {
+      return;
+    }
+    let loc = await Location.getCurrentPositionAsync({ enableHighAccuracy: false });
+    console.log(status);
+
+    const tempLocation = {
+      longitude: loc.coords.longitude,
+      latitude: loc.coords.latitude,
+    }
+    if(typeof location === "undefined") {
+      setLocation(tempLocation);
+    }
+    else if(location.latitude !== tempLocation.latitude) {
+      
+      setLocation(tempLocation);
+    }
+    //setLocation(tempLocation);
+
+
+  };
+  function delay(time) {
+    return new Promise(resolve => setTimeout(resolve, time));
+  }
+  useEffect(() => {
+    setLoading(true)
+  },[])
+  const fetchDistance = async () => {
+    try {
+      const value = await AsyncStorage.getItem('@distance')
+      if(value !== null) {
+        setDistance(value)
+      }
+      else {
+        setDistance(50)
+      }
+    } catch(e) {
+      setDistance(50)
+      console.log("su")
+    }
+  }
+  const handleRefresh = () => {
+    setRefreshing(true)
+  }
+  const getRecommendation = () => {  
+    var descriptions = []
+    var names = [] 
+    var estimatedLikedPlaces = []
+    const likedPlaces = currentUser.data().likedPlaces;
+    placeList.forEach((place) =>{
+      if(place) {
+        descriptions.push(place.info);
+        names.push(place.name) 
+      }
+    })
+
+    var newPlaceList = [...placeList];
+    likedPlaceList.forEach((likedPlace) => {
+      const info = likedPlace.data().info;
+      const name = likedPlace.data().name
+      var isFound = false;
+      if(!descriptions.includes(info))
+        descriptions.push(info);
+      
+      if(!names.includes(name))
+        names.push(name) 
+
+      if(newPlaceList.some(person => person.name === name)){
+          isFound = true;
+      }
+      if(!isFound) {
+        newPlaceList.push(likedPlace.data())
+      }
+    
+    })
+
+    const corpus = new Corpus(names,descriptions);
+    const similarity = new Similarity(corpus);
+    estimatedLikedPlaces = corpus.getResultsForQuery(currentUser.initForm).slice(0,2).map(place => place[0]);
+    var userProfile = likedPlaces.concat(estimatedLikedPlaces).sort(() => Math.random() - 0.5)
+
+    var isInit = true;
+    var recommendedPlaces = getPreference(userProfile, similarity, isInit, newPlaceList)
+    var placeNames = recommendedPlaces.map(p => p[0]);
+    const notLikedPlaceNames = placeNames.filter(place =>{
+      return likedPlaces.includes(place) === false;
+    })
+    var recommendedPlacesDocs = []
+    notLikedPlaceNames.forEach(placeName =>{
+      newPlaceList.forEach((place) =>{ 
+        if(place.name === placeName) {
+          recommendedPlacesDocs.push(place) 
+        }
+      })
+    })
+    return recommendedPlacesDocs;
+  }
+
+  useFocusEffect(
+    useCallback(() => {
+      var unsubscribe;
+      unsubscribe = fetchDistance();
+      fetchLocation();
+
+      return () => unsubscribe;
+    }, [])
+  );
+  useEffect(() => {
+    fetchLocation();
+
+  },[])
+
+  useEffect(() => {
+    setDistanceUpdated(!distanceUpdated)
+
+  },[distance])
+   useEffect(()  => {
     checkAdmin();
+     
   }, []);
+
+  useEffect(() => {
+    if(typeof location !== 'undefined')
+      setLocationLoaded(true)
+  },[location])
+
+  useEffect(() => {
+    if(refreshing) {
+      checkAdmin();      
+    }
+  },[refreshing, currentUser])
+
+  useEffect(() => {
+    if(locationLoaded && !!distance) {
+      console.log(location)
+ 
+      getVerifiedPlaces(onPlacesRecieved, location, distance);
+      getMostPopularPlaces(onPopularPlacesReceived);
+    }
+  },[location, distance])
+
+  useEffect(() => {
+
+    var placesByCategory = []
+    if(recommendedPlaces.length > 0) {
+      placesByCategory.push({
+        category: "Recommended", 
+        places: recommendedPlaces
+      }) 
+    
+      placesByCategory.push({
+        category: "Most Popular", 
+        places: popularPlaces
+      }) 
+      categories.categories.forEach(category =>{
+        var categoryList = placeList.filter(place =>{
+          return ((place.category.toLowerCase() == category.toLowerCase()))})
+
+        placesByCategory.push({
+          category: category,
+          places: categoryList
+        })
+      })
+      setSortedPlaces(placesByCategory);
+      console.log("sui")
+      setLoading(false); 
+      if(refreshing)
+        setRefreshing(false);
+      }
+
+  },[recommendedPlaces])
+
   const checkAdmin = async () => {
-    var snapshot = await firestore.collection("Users").doc(auth.currentUser.uid).get();
-    var user = snapshot
+    var user = await firestore.collection("Users").doc(auth.currentUser.uid).get();
+
     setCurrentUser(user)
+    getLikedPlaces(onLikedPlacesReceived, user)
+
     if(user.data().isAdmin)
       setIsAdmin(true)
   };
   const placeAddNavigate = () => {
-    navigation.replace("PlaceAddScreen");
+    navigation.replace("PlaceAddScreen",{location: location}); 
   };
   const verifyPlaceNavigate = () => {
     navigation.replace("VerifyPlacesScreen");
   };
+  const allEmpty = (obj) => {
+    Object.keys(obj).every(function(key){
+      console.log(obj[key])
+      return obj[key].length === 0
+    })
+  }
   const FlatListItemSeparator = () => {
     return (
       <View
         style={{
           height: 1,
-          width: "80%",
+          width: "75%",
           backgroundColor: "#888",
           opacity: 0.7,
           alignSelf: "center",
@@ -66,58 +274,79 @@ const HomeScreen = () => {
       />
     );
   }
-  return (
-    <View style={styles.container}>
-      <View style={styles.statusBar} />
-      <View style={styles.containerTopBar}>
-        <View style={styles.shadow}>
-          {isAdmin ? (
-            <TouchableOpacity onPress={verifyPlaceNavigate}>
-              <View style={{ flexDirection: "row" }}>
-                <Feather name="shield" size={24} style={styles.icon} />
-                <Text style={styles.topBarText}>Verify Places</Text>
-              </View>
-            </TouchableOpacity>
-          ) : (
-            <Text></Text>
-          )}
-        </View>
-        <TouchableOpacity onPress={placeAddNavigate}>
-          <View style={{ flexDirection: "row" }}>
-            <Feather name="plus-circle" size={24} style={styles.icon} />
-            <Text style={styles.topBarText}>Add Place</Text>
-          </View>
-        </TouchableOpacity>
-      </View>
 
+  if(!loading) {
+    return (
       <View style={styles.container}>
-        <TouchableOpacity onPress={() => {
-          navigation.replace("Preferences")
-        }}>
-          <Text >Sut</Text>
-        </TouchableOpacity>
-            <FlatList
-              data = {categories.categories}
-              ItemSeparatorComponent = { FlatListItemSeparator }
+        <View style={styles.statusBar} />
+        <View style={styles.containerTopBar}>
+          <View style={styles.shadow}>
+            {isAdmin ? ( 
+              <TouchableOpacity onPress={verifyPlaceNavigate}>
+                <View style={{ flexDirection: "row" }}>
+                  <Feather name="shield" size={24} style={styles.icon} />
+                  <Text style={styles.topBarText}>Verify Places</Text>
+                </View>
+              </TouchableOpacity>
+            ) : (
+              <Text></Text>
+            )}
+          </View>
+          <TouchableOpacity onPress={placeAddNavigate}>
+            <View style={{ flexDirection: "row" }}>
+              <Feather name="plus-circle" size={24} style={styles.icon} />
+              <Text style={styles.topBarText}>Add Place</Text>
+            </View> 
+          </TouchableOpacity>
+        </View>
+  
+        <View style={styles.container}>
+                <FlatList
+                data = {sortedPlaces}
+                keyExtractor={(item, index) => {
+                  return index;
+                }}
+                initialNumToRender={3}
+                getItemLayout={(data, index) => (
+                  {length: 300, offset: 300 * index, index}
+                )}
+                style = { {marginBottom: 100}}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={handleRefresh}
+                  />
+                }
+              
+                renderItem={({ item }) => (
+                  <>
+                    {(item.places.length > 0) ? (
+                    <>
+                      <View style={{marginLeft: 50, marginBottom: 10}}>
+                        <Text style={styles.header}>{item.category}</Text> 
+                      </View> 
+                        <PlaceList location = {location} likedPlace={likedPlaceList} distanceUpdate = {distanceUpdated} refreshing = {refreshing} distance = {distance} places= {item.places} category = {item.category}/>
 
-              renderItem={({ item }) => (
-                <>
-                  <View style={{marginLeft: 45, marginBottom: 10}}>
-                    <Text style={styles.header}>{item}</Text>
-                  </View>
-                  
-                  <PlaceList places= {placeList.filter(place =>{
-                    return place.category == item.toLowerCase()
-                  })} category = {item}/>
-                </>
-              )}
-            />
-            
-        
-      </View>
-    </View>
-  );
-};
+                      <FlatListItemSeparator/>
+
+                    </>):(<>
+                    </>)}
+                  </> 
+                )}
+              /> 
+        </View>
+      </View> 
+    );
+  }
+  else {
+    return(
+      <View style={styles.container}>
+        <Text style={styles.header}>Loading</Text>
+        </View>
+    )
+  }
+  
+}; 
 
 export default HomeScreen;
 

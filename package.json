@@ -8,10 +8,10 @@
         "eject": "expo eject"
     },
     "dependencies": {
-        "@expo/vector-icons": "expo/vector-icons",
         "@fortawesome/fontawesome-svg-core": "^1.2.36",
         "@fortawesome/free-solid-svg-icons": "^5.15.4",
         "@fortawesome/react-native-fontawesome": "^0.2.7",
+        "@miblanchard/react-native-slider": "^2.1.0",
         "@react-native-async-storage/async-storage": "~1.15.0",
         "@react-navigation/bottom-tabs": "^6.0.9",
         "@react-navigation/drawer": "^6.1.8",
@@ -27,12 +27,14 @@
         "expo-status-bar": "~1.1.0",
         "firebase": "^8.2.3",
         "font-awesome": "^4.7.0",
+        "geofire": "^5.2.0",
         "geolib": "^3.3.3",
         "native-base": "^3.2.2",
         "react": "17.0.1",
         "react-dom": "17.0.1",
         "react-native": "0.64.3",
         "react-native-gesture-handler": "~1.10.2",
+        "react-native-get-location": "^2.2.1",
         "react-native-image-crop-picker": "^0.37.2",
         "react-native-maps": "0.28.0",
         "react-native-paper": "^4.10.1",
@@ -42,7 +44,8 @@
         "react-native-svg": "^12.1.1",
         "react-native-vector-icons": "^8.1.0",
         "react-native-web": "0.17.1",
-        "reanimated-bottom-sheet": "^1.0.0-alpha.22"
+        "reanimated-bottom-sheet": "^1.0.0-alpha.22",
+        "tiny-tfidf": "^0.9.1"
     },
     "devDependencies": {
         "@babel/core": "^7.12.9"
