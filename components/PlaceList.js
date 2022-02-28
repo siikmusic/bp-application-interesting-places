@@ -16,6 +16,7 @@ import { useFonts } from "expo-font";
 import { useNavigation } from "@react-navigation/core";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from "@react-navigation/native";
+import * as Font from 'expo-font';
 
 export function PlaceList(props) {
   const [locationLoaded, setLocationLoaded] = useState(false);
@@ -29,7 +30,7 @@ export function PlaceList(props) {
   const [refreshing, setRefreshing] = useState(false);
   const [distanceUpdated, setDistanceUpdated] = useState(false);
   const [likedPlaceNames, setLikedPlaceNames] = useState([]);
-  
+  const [sortedCategories, setSortedCategories] = useState()
   useEffect(() => {
     var likedPlaceNames = []
     props.likedPlace.forEach(place =>{
@@ -39,10 +40,17 @@ export function PlaceList(props) {
   },[props.likedPlace])
 
   useEffect(() => {
+    setSortedCategories(props.sortedCategories);
+  },[props.sortedCategories])
+
+  useEffect(() => {
     if(typeof props.location !== 'undefined')
       setLocation(props.location)
   },[props.location])
 
+  useEffect(() => {
+    loadFonts()
+  },[])
   useEffect(() => {
 
     if(props.refreshing)
@@ -52,16 +60,14 @@ export function PlaceList(props) {
 
   },[props.refreshing])
   useEffect(() => {
-    setDistanceUpdated(props.distanceUpdated)
-  },[props.distanceUpdated])
+    setDistanceUpdated(props.distanceUpdate)
+  },[props.distanceUpdate])
   useEffect(() => {
     if(locationLoaded){
       var filtered = []
       filtered =props.places;
       if(props.category.toString() === "Recommended" ) {
-        filtered.forEach((place) => {
-          console.log(props.category.toString())
-        })
+
       }
       else if(props.category.toString() === "Most Popular")
       {}
@@ -69,7 +75,6 @@ export function PlaceList(props) {
         filtered.sort((a,b) =>(getDist(a) >= getDist(b)) ? 1: -1)
 
       }
-      console.log("filtered")
       setPlaceList(filtered)
       setFiltered(true)
     } 
@@ -78,7 +83,6 @@ export function PlaceList(props) {
   useFocusEffect(
     useCallback(() => {
       var unsubscribe;
-
       unsubscribe = fetchDistance();
       return () => unsubscribe;
     }, [])
@@ -93,14 +97,35 @@ export function PlaceList(props) {
       console.log(e)
     }
   }
-  const [loaded] = useFonts({
-    MontserratRegular: require("../assets/fonts/Montserrat-Regular.ttf"),
-    MontserratBold: require("../assets/fonts/Montserrat-SemiBold.ttf"),
-    MontserratLight: require("../assets/fonts/Montserrat-Light.ttf"),
-  });
-  const navigation = useNavigation(); 
 
+  const loadFonts = async () => {
+    await Font.loadAsync({
+      'MontserratRegular': require('../assets/fonts/Montserrat-Regular.ttf'),
+      'MontserratBold': require('../assets/fonts/Montserrat-SemiBold.ttf'),
+      'MontserratLight': require("../assets/fonts/Montserrat-Light.ttf"),
   
+    }).then(() =>{
+
+    });
+  }
+
+  const navigation = useNavigation();   
+
+  const setCategoryVisited = async () => {
+    if(props.category !== "Recommended" && props.category !== "Most Popular") {
+      var index = sortedCategories.findIndex(x => x.category === props.category);
+      var tmp = [...sortedCategories];
+      tmp[index].visitedCount =tmp[index].visitedCount+1;
+      console.log(tmp);
+      setSortedCategories(tmp)
+      try {
+        await AsyncStorage.setItem('@categories', JSON.stringify(tmp))
+      } catch (e) {
+        console.log(e);
+      }
+    }
+
+  }
 
   useEffect( () => {
     setLocationLoaded(true)
@@ -126,16 +151,16 @@ export function PlaceList(props) {
             {length: 300, offset: 300 * index, index}
           )}
           extraData={props.places}
-          initialNumToRender={3}
+          initialNumToRender={2}
           horizontal={true}
           showsHorizontalScrollIndicator={false}
-          extraData={refreshing, distanceUpdated, likedPlaceNames}
+          extraData={refreshing}
           renderItem={({ item }) => (
             <View style={styles.place}>
-
+              
               <TouchableOpacity
                 onPress={() =>{
-                  console.log(props.category)
+                  setCategoryVisited();
                   navigation.navigate("Place Details", {
                     place: item,
                     loc: getDist(item),
@@ -263,7 +288,6 @@ const styles = StyleSheet.create({
     fontFamily: "MontserratRegular",
   },
   name: {
-    fontFamily: "MontserratLight",
     fontSize: 25,
     flex: 1
   },

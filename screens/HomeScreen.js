@@ -20,14 +20,15 @@ import {getPreference} from "../recommendation/Recommendation"
 import * as Location from "expo-location";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useIsFocused } from "@react-navigation/native";
-import GetLocation from 'react-native-get-location'
+import { ActivityIndicator, Colors } from 'react-native-paper';
+import * as Font from 'expo-font';
 
+import 'react-native-console-time-polyfill';
 
 const HomeScreen = () => {
   const navigation = useNavigation();
   const [placeList, setPlaceList] = useState([]);
-  const [likedPlaceList, setLikedPlaceList] = useState([]);
-
+  const [likedPlaceList, setLikedPlaceList] = useState();
   const [isAdmin, setIsAdmin] = useState(false);
   const [currentUser, setCurrentUser] = useState({});
   const [recommendedPlaces, setRecommendedPlaces] = useState([])
@@ -39,9 +40,14 @@ const HomeScreen = () => {
   const [distance, setDistance] = useState()
   const [loading, setLoading] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
-  const [loaded] = useFonts({
-    MontserratRegular: require("../assets/fonts/Montserrat-Regular.ttf"),
-    MontserratBold: require("../assets/fonts/Montserrat-SemiBold.ttf"),
+  const [likedPlaceListUpdated, setLikedPlaceListUpdated] = useState(false)
+  const [sortedCategories, setSortedCategories] = useState();
+
+
+  const fetchFonts = async () =>
+  await Font.loadAsync({
+    'MontserratRegular': require('../assets/fonts/Montserrat-Regular.ttf'),
+    'MontserratBold': require('../assets/fonts/Montserrat-SemiBold.ttf'),
   });
   const onPlacesRecieved = (places) => {
     setPlaceList(places);
@@ -52,19 +58,22 @@ const HomeScreen = () => {
   }
   const onLikedPlacesReceived = (likedPlaces) => {
     setLikedPlaceList(likedPlaces); 
-    
+
   }
+
   useEffect(() => {
     if(placeList.length > 0) {
-      console.log("loaded")
+      //console.log("loaded")
       if(Object.keys(currentUser).length > 0)
-        console.log("user loaded")
-        if(likedPlaceList.length > 0)
+        //console.log("user loaded")
+        if(likedPlaceListUpdated) {
+          //console.log("likedplacelist")
           setRecommendedPlaces(getRecommendation());
+        }
     }
       
 
-  },[placeList,currentUser,likedPlaceList])
+  },[placeList,likedPlaceListUpdated])
   const fetchLocation = async () => {
     
     let { status } = await Location.requestForegroundPermissionsAsync();
@@ -72,54 +81,75 @@ const HomeScreen = () => {
       return;
     }
     let loc = await Location.getCurrentPositionAsync({ enableHighAccuracy: false });
-    console.log(status);
 
     const tempLocation = {
       longitude: loc.coords.longitude,
       latitude: loc.coords.latitude,
     }
+
     if(typeof location === "undefined") {
+
       setLocation(tempLocation);
     }
     else if(location.latitude !== tempLocation.latitude) {
-      
       setLocation(tempLocation);
     }
-    //setLocation(tempLocation);
-
 
   };
-  function delay(time) {
-    return new Promise(resolve => setTimeout(resolve, time));
-  }
+
   useEffect(() => {
+    fetchFonts();
     setLoading(true)
   },[])
+
+  const fetchCategories = async () => {
+    try {
+      const value = await AsyncStorage.getItem('@categories')
+      if(value !== null) {
+        var sortedCategories = JSON.parse(value);
+        sortedCategories.sort((a,b) => (a.visitedCount < b.visitedCount) ? 1 : ((b.visitedCount < a.visitedCount) ? -1 : 0))
+        setSortedCategories(sortedCategories)
+      }
+
+    } catch(e) {
+      console.log(e);
+    }
+  }
+
   const fetchDistance = async () => {
     try {
       const value = await AsyncStorage.getItem('@distance')
       if(value !== null) {
-        setDistance(value)
+        if(value !== distance) {
+          setDistance(value)
+        }
+        
       }
       else {
         setDistance(50)
       }
     } catch(e) {
       setDistance(50)
-      console.log("su")
     }
   }
   const handleRefresh = () => {
+    setLikedPlaceListUpdated(false)
+
     setRefreshing(true)
   }
-  const getRecommendation = () => {  
+  const getRecommendation = () => {
+    console.time('recommend')
+
     var descriptions = []
     var names = [] 
     var estimatedLikedPlaces = []
     const likedPlaces = currentUser.data().likedPlaces;
     placeList.forEach((place) =>{
       if(place) {
-        descriptions.push(place.info);
+        if(!place.info)
+          descriptions.push(place.name);
+        else
+          descriptions.push(place.info);
         names.push(place.name) 
       }
     })
@@ -146,11 +176,11 @@ const HomeScreen = () => {
 
     const corpus = new Corpus(names,descriptions);
     const similarity = new Similarity(corpus);
-    estimatedLikedPlaces = corpus.getResultsForQuery(currentUser.initForm).slice(0,2).map(place => place[0]);
+    estimatedLikedPlaces = corpus.getResultsForQuery(currentUser.data().initForm).slice(0,2).map(place => place[0]);
     var userProfile = likedPlaces.concat(estimatedLikedPlaces).sort(() => Math.random() - 0.5)
-
     var isInit = true;
-    var recommendedPlaces = getPreference(userProfile, similarity, isInit, newPlaceList)
+    var recommendedPlaces = getPreference(userProfile, similarity, isInit, newPlaceList,likedPlaces)
+
     var placeNames = recommendedPlaces.map(p => p[0]);
     const notLikedPlaceNames = placeNames.filter(place =>{
       return likedPlaces.includes(place) === false;
@@ -163,91 +193,114 @@ const HomeScreen = () => {
         }
       })
     })
+    console.timeEnd('recommend')
+
     return recommendedPlacesDocs;
   }
-
+  useEffect(() => {
+  },[recommendedPlaces])
   useFocusEffect(
     useCallback(() => {
       var unsubscribe;
       unsubscribe = fetchDistance();
-      fetchLocation();
 
       return () => unsubscribe;
     }, [])
-  );
+  ); 
   useEffect(() => {
     fetchLocation();
-
+    fetchCategories();
   },[])
 
   useEffect(() => {
     setDistanceUpdated(!distanceUpdated)
-
   },[distance])
+  useEffect(() => {
+    if(typeof likedPlaceList !== 'undefined' && (!likedPlaceListUpdated)) {
+      setLikedPlaceListUpdated(true)
+
+    }
+
+  },[likedPlaceList])
    useEffect(()  => {
     checkAdmin();
-     
   }, []);
 
   useEffect(() => {
-    if(typeof location !== 'undefined')
+    if(!!location) {
       setLocationLoaded(true)
+    }
   },[location])
 
   useEffect(() => {
     if(refreshing) {
-      checkAdmin();      
+
+      fetchLocation();
+      fetchCategories();
+      checkAdmin();
+
     }
-  },[refreshing, currentUser])
+  },[refreshing])
 
   useEffect(() => {
-    if(locationLoaded && !!distance) {
-      console.log(location)
+    if(locationLoaded) {
  
       getVerifiedPlaces(onPlacesRecieved, location, distance);
       getMostPopularPlaces(onPopularPlacesReceived);
     }
-  },[location, distance])
+  },[locationLoaded, distance])
 
   useEffect(() => {
+    console.time(` init`);
 
     var placesByCategory = []
+    if(placeList.length > 0 && popularPlaces.length > 0) {
     if(recommendedPlaces.length > 0) {
       placesByCategory.push({
         category: "Recommended", 
         places: recommendedPlaces
       }) 
-    
+    }
       placesByCategory.push({
         category: "Most Popular", 
         places: popularPlaces
       }) 
-      categories.categories.forEach(category =>{
+      sortedCategories.forEach(category =>{
         var categoryList = placeList.filter(place =>{
-          return ((place.category.toLowerCase() == category.toLowerCase()))})
+          return ((place.category.toLowerCase() == category.category.toLowerCase()))})
 
         placesByCategory.push({
-          category: category,
+          category: category.category,
           places: categoryList
         })
       })
       setSortedPlaces(placesByCategory);
-      console.log("sui")
       setLoading(false); 
-      if(refreshing)
+      if(refreshing){
         setRefreshing(false);
       }
+    }
+      console.timeEnd(` init`);
 
+ 
   },[recommendedPlaces])
 
-  const checkAdmin = async () => {
-    var user = await firestore.collection("Users").doc(auth.currentUser.uid).get();
+  const checkAdmin =  () => {
+    
+    console.time('refresh')
+    firestore.collection("Users").doc(auth.currentUser.uid).get().then((user) =>{
+      
+      setCurrentUser(user)
+      
+      getLikedPlaces(onLikedPlacesReceived, user)
 
-    setCurrentUser(user)
-    getLikedPlaces(onLikedPlacesReceived, user)
+      if(user.data().isAdmin)
+        setIsAdmin(true)
 
-    if(user.data().isAdmin)
-      setIsAdmin(true)
+    });
+    console.timeEnd('refresh')
+    
+
   };
   const placeAddNavigate = () => {
     navigation.replace("PlaceAddScreen",{location: location}); 
@@ -298,6 +351,7 @@ const HomeScreen = () => {
               <Text style={styles.topBarText}>Add Place</Text>
             </View> 
           </TouchableOpacity>
+
         </View>
   
         <View style={styles.container}>
@@ -317,7 +371,7 @@ const HomeScreen = () => {
                     onRefresh={handleRefresh}
                   />
                 }
-              
+                
                 renderItem={({ item }) => (
                   <>
                     {(item.places.length > 0) ? (
@@ -325,8 +379,7 @@ const HomeScreen = () => {
                       <View style={{marginLeft: 50, marginBottom: 10}}>
                         <Text style={styles.header}>{item.category}</Text> 
                       </View> 
-                        <PlaceList location = {location} likedPlace={likedPlaceList} distanceUpdate = {distanceUpdated} refreshing = {refreshing} distance = {distance} places= {item.places} category = {item.category}/>
-
+                        <PlaceList sortedCategories={sortedCategories} user={currentUser} location = {location} likedPlace={likedPlaceList} distanceUpdate = {distanceUpdated} refreshing = {refreshing} distance = {distance} places= {item.places} category = {item.category}/>
                       <FlatListItemSeparator/>
 
                     </>):(<>
@@ -341,8 +394,8 @@ const HomeScreen = () => {
   else {
     return(
       <View style={styles.container}>
-        <Text style={styles.header}>Loading</Text>
-        </View>
+          <ActivityIndicator size = {"large"} animating={true} color={Colors.blue800} />
+      </View>
     )
   }
   

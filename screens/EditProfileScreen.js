@@ -10,9 +10,7 @@ import {
   Image,
 } from "react-native";
 import { auth, storage } from "../firebase";
-import { Avatar, Title, Caption, TouchableRipple } from "react-native-paper";
-import Animated from "react-native-reanimated";
-import BottomSheet from "reanimated-bottom-sheet";
+import { Avatar } from "react-native-paper";
 import Constants from "expo-constants";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
@@ -24,7 +22,6 @@ const EditProfileScreen = () => {
   const [image, setImage] = useState(
     "https://api.adorable.io/avatars/80/abott@adorable.png"
   );
-  const [downloadUrl, setUrl] = useState("");
 
   const [pickedImagePath, setPickedImagePath] = useState(null);
   const [firstName, setFirstName] = useState("");
@@ -90,25 +87,7 @@ const EditProfileScreen = () => {
   }
   const submit = async () => {
     const fullName = firstName.concat(" ", lastName);
-    /*console.log(fullName);
-    auth.currentUser.updateEmail(email);
-    var applicationVerifier = new auth.RecaptchaVerifier("recaptcha-container");
-    var provider = new auth.PhoneAuthProvider();
-    provider
-      .verifyPhoneNumber(phoneNumber, applicationVerifier)
-      .then(function (verificationId) {
-        var verificationCode = window.prompt(
-          "Please enter the verification " +
-            "code that was sent to your mobile device."
-        );
-        return auth.PhoneAuthProvider.credential(
-          verificationId,
-          verificationCode
-        );
-      })
-      .then(function (phoneCredential) {
-        return auth.currentUser.updatePhoneNumber(phoneCredential);
-      });*/
+    
     storeDistance();
     if (pickedImagePath) {
       const uploadUri = pickedImagePath;
@@ -145,6 +124,9 @@ const EditProfileScreen = () => {
       });
     }
   };
+  const editPreference = () =>{
+    navigation.navigate("EditPreferencesScreen", {uid: auth.currentUser.uid})
+  }
   const DisplayAvatar = () => {
     var uri = auth.currentUser.photoURL;
     if (uri) {
@@ -160,6 +142,7 @@ const EditProfileScreen = () => {
       );
     }
   };
+
   return (
     <KeyboardAvoidingView style={styles.container}>
       <View style={styles.statusBar} />
@@ -191,7 +174,7 @@ const EditProfileScreen = () => {
             <DisplayAvatar />
           </TouchableOpacity>
           <Text style={{ marginBottom: 10, fontSize: 24, fontWeight: "bold" }}>
-            {auth.currentUser.displayName
+            {!!auth.currentUser.displayName
               ? auth.currentUser.displayName
               : "Your Name"}
           </Text>
@@ -210,7 +193,9 @@ const EditProfileScreen = () => {
               },
             ]}
           >
-              {auth.currentUser.displayName}
+              {!!auth.currentUser.displayName
+              ? auth.currentUser.displayName.split(' ').slice(0, -1).join(' ')
+              : "Your Name"}
 
             </TextInput>
         </View>
@@ -227,7 +212,9 @@ const EditProfileScreen = () => {
               },
             ]}
           >
-            {auth.currentUser.displayName}
+              {!!auth.currentUser.displayName
+              ? auth.currentUser.displayName.split(' ').slice(-1).join(' ')
+              : "Your Name"}
             </TextInput>
         </View>
         <View style={styles.action}>
@@ -278,10 +265,13 @@ const EditProfileScreen = () => {
 
           <Slider trackStyle = {{backgroundColor: "white"}}   step = {1} minimumValue = {25} maximumValue = {200} value = {distance} onValueChange={value => updateDistance(value)}/>
         </View>
-        
+        <TouchableOpacity style={styles.commandButton2} onPress={editPreference}>
+          <Text style={styles.panelButtonTitleBlack}>Edit Preference</Text>
+        </TouchableOpacity>
         <TouchableOpacity style={styles.commandButton} onPress={submit}>
           <Text style={styles.panelButtonTitle}>Submit</Text>
         </TouchableOpacity>
+        
       </View>
     </KeyboardAvoidingView>
   );
@@ -300,6 +290,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#29c5F6",
     alignItems: "center",
     marginTop: 10,
+  },
+  commandButton2: {
+    padding: 15,
+    borderRadius: 10,
+    backgroundColor: "white",
+    alignItems: "center",
+    marginTop: 10,
+    borderWidth: 0.5,
+    color: "black",
   },
   statusBar: {
     backgroundColor: "white",
@@ -378,6 +377,11 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: "bold",
     color: "white",
+  },
+  panelButtonTitleBlack: {
+    fontSize: 17,
+    fontWeight: "bold",
+    color: "black",
   },
   action: {
     flexDirection: "row",

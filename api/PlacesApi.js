@@ -1,9 +1,39 @@
 import { firestore, auth, storage } from "../firebase";
 import { query, where } from "firebase/firestore";
 import firebase from 'firebase/app'
-const geofire = require('geofire-common');
+import 'react-native-console-time-polyfill';
 
+const geofire = require('geofire-common');
+function capitalizeFirstLetter(string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+function delay(time) {
+  return new Promise(resolve => setTimeout(resolve, time));
+}
 export function addPlace(place, addComplete) {
+  const category = capitalizeFirstLetter(place.category);
+  console.log(category)
+  delay(500).then(() =>{
+    firestore
+    .collection("Places")
+    .add({
+      name: place.name,
+      info: place.info,
+      uri: place.uri,
+      category: category,
+      geohash: place.geohash,
+      location: place.location,
+      numberOfLikes: 0,
+      isValidated: place.isValidated,
+    })
+    .then((data) => addComplete(data))
+    .catch((error) => console.log(error));
+  })
+}
+
+export function addPlaceFromData(place, addComplete) {
+  const hash = geofire.geohashForLocation([place.location.latitude, place.location.longitude]);
+
   firestore
     .collection("Places")
     .add({
@@ -11,7 +41,7 @@ export function addPlace(place, addComplete) {
       info: place.info,
       uri: place.uri,
       category: place.category,
-      geohash: place.geohash,
+      geohash: hash,
       location: place.location,
       numberOfLikes: 0,
       isValidated: place.isValidated,
@@ -60,7 +90,7 @@ export async function getUnVerifiedPlaces(placesRetrieved) {
 
   await firestore.collection("Places").where("isValidated","==",false).get().then((snapshot) => {
     snapshot.forEach(doc => {
-      placeList.push(doc.data());
+      placeList.push(doc);
     }) 
   });
   placesRetrieved(placeList);
@@ -97,6 +127,7 @@ export async function updatePlace() {
 export async function getLikedPlaces(placesRetrieved, user) {
   var data = user.data()
   var likedPlaces = [];
+  console.time("get liked")
   if(data.likedPlaces.length > 0) {
       for(var i = 0; i < data.likedPlaces.length; i++) {
         await firestore.collection("Places").where("name","==", data.likedPlaces[i]).get().then(snapshot => {
@@ -107,6 +138,8 @@ export async function getLikedPlaces(placesRetrieved, user) {
         });
       }
   } 
+  console.timeEnd("get liked")
+
   placesRetrieved(likedPlaces, user);
 }
 
@@ -186,4 +219,13 @@ export async function getMostPopularPlaces(onPopularPlacesReceived) {
     })
   }).catch((error) => console.log(error));
   onPopularPlacesReceived(popularPlaces);
+}
+
+export async function getInitForm(uid, onInitFormReceived) {
+  var initForm;
+  await firestore.collection("Users").doc(uid.uid).get().then(snapshot => {
+      initForm = snapshot.data().initForm
+  })
+
+  onInitFormReceived(initForm)
 }

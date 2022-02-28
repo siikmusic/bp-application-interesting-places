@@ -9,7 +9,7 @@ import {
   FlatList,
   ImageBackground,
 } from "react-native";
-import { getLikedPlacesNoUser, deleteLikedPlace
+import { getLikedPlacesNoUser, deleteLikedPlace, addPlaceFromData
 } from "../api/PlacesApi";
 import Constants from "expo-constants";
 import { Dimensions } from "react-native";
@@ -19,8 +19,7 @@ import * as Location from "expo-location";
 import { getDistance } from "geolib";
 import { useFonts } from "expo-font";
 import { useFocusEffect } from "@react-navigation/native";
-import { auth, firestore } from "../firebase";
-
+import { ActivityIndicator, Colors } from 'react-native-paper';
 const MyListScreen = () => {
   const [likedPlaces, setLikedPlaces] = useState([]);
   const [location, setLocation] = useState({
@@ -31,9 +30,12 @@ const MyListScreen = () => {
     MontserratRegular: require("../assets/fonts/Montserrat-Regular.ttf"),
     MontserratBold: require("../assets/fonts/Montserrat-SemiBold.ttf"),
   });
+  const [loading, setLoading] = useState(true);
   const onPlacesRecieved = (placeList) => {
-    if(likedPlaces !== [])
+    if(likedPlaces !== []){
       setLikedPlaces(placeList);
+      setLoading(false);
+    }
   };
 
   const deleteItem = (item) => {
@@ -47,6 +49,9 @@ const MyListScreen = () => {
     setLikedPlaces(filterData);
     deleteLikedPlace(item.data().name);
   };
+  const onPlaceAdded = () => {
+    console.log("onPlaceAdded");
+  }
 
   /* useEffect(() => {
     getLikedPlaces(onPlacesRecieved);
@@ -84,19 +89,29 @@ const MyListScreen = () => {
     }
   };
   const navigation = useNavigation();
-
+  if(loading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size = {"large"} animating={true} color={Colors.blue800} />
+      </View>
+    )
+  }
+  
   return (
+    
     <View style={styles.container}>
       <View style={styles.statusBar} />
-      <View style={{ flex: 1 }}>
+      <View style={{ }}>
         <Text style={styles.heading1}>My List</Text>
       </View>
+      <View style={styles.container}>
       {likedPlaces.length ? (
         <FlatList
           data={likedPlaces}
           keyExtractor={(item, index) => {
             return index;
           }}
+          style={{marginBottom: 90}}
           numColumns={2}
           renderItem={({ item }) => (
             <View style={styles.shadow}>
@@ -130,10 +145,11 @@ const MyListScreen = () => {
           )}
         />
       ) : (
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, justifyContent: "center"}}>
           <Text>No Liked Places</Text>
         </View>
       )}
+      </View>
     </View>
   );
 };

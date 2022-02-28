@@ -4,19 +4,18 @@ import { useNavigation } from "@react-navigation/core";
 import { useFonts } from "expo-font";
 import Constants from "expo-constants";
 import data from "../data/preferences.json"
-import { Feather } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
 import { updateInitForm } from '../api/PlacesApi';
-import { Chip } from 'react-native-paper';
-
-const InitPreferencesScreen = () => {
+import { getInitForm } from '../api/PlacesApi';
+const InitPreferencesScreen = (props) => {
     const navigation = useNavigation();
-    const [preferences, setPreferences] = useState(data.preferences);
-    const [addedPreferences, setAddedPreferences] = useState([])
+    const [preferences, setPreferences] = useState([]);
+    const [addedPreferences, setAddedPreferences] = useState()
     const handleContinue = () => {
         const preferenceString = addedPreferences.join(" ");
         console.log(preferenceString)
         updateInitForm(preferenceString);
-        navigation.replace("TabNavigator");
+        navigation.goBack();
     }
     const [] = useFonts({
         MontserratRegular: require("../assets/fonts/Montserrat-Regular.ttf"),
@@ -42,6 +41,20 @@ const InitPreferencesScreen = () => {
             
         }
     }
+    const onInitFormReceived = (initForm) => {
+        const form = initForm.split(" ")
+        console.log(form)
+        var tmp = data.preferences;
+        const newData = tmp.filter(dat => !form.includes(dat))
+        setPreferences(newData)
+        if(typeof form === "string")
+            setAddedPreferences([form]);
+        else
+            setAddedPreferences(form);
+    }
+    useEffect(() => {
+        getInitForm(props.route.params, onInitFormReceived)
+    },[])
     const handleRemove = (item) => {
       var index = addedPreferences.indexOf(item);
       var pref = [...preferences];
@@ -53,13 +66,22 @@ const InitPreferencesScreen = () => {
           setPreferences(pref)
       }
   }
-    
   return (
     <View>
         <View style={styles.statusBar}></View>
+        <View style={styles.containerTopBar}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <View style={{ flexDirection: "row" }}>
+              <Ionicons name="chevron-back" size={24} style={styles.icon} />
+              <Text style={styles.topBarText}>Back</Text>
+            </View>
+          </TouchableOpacity>
+
+        <View></View>
+      </View>
         <View style = {styles.centerText}>
             <Text style = {styles.header}>
-                Tap A Few Things You Like
+                Edit Your Preferences
             </Text>
         </View>
         <FlatList
@@ -113,7 +135,8 @@ const InitPreferencesScreen = () => {
         <View>
 
         </View>
-      <View style={styles.buttonContainer}>
+        
+        <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.button1}>
             <Text onPress={handleContinue} style={styles.buttonOutlineTextWhite}>
               Continue
@@ -137,7 +160,6 @@ const styles = StyleSheet.create({
     centerText: {
         justifyContent: "center",
         alignItems: "center",
-        marginTop: 10,
     },  
     icon: {
         marginLeft: 5,
@@ -173,7 +195,7 @@ const styles = StyleSheet.create({
         paddingHorizontal:15,
         backgroundColor: "#c9f1fd",
         borderRadius: 3,
-        margin: 10,
+        margin: 5,
       },
       redContainer: {
         alignSelf: 'center', 
@@ -181,7 +203,23 @@ const styles = StyleSheet.create({
         paddingHorizontal:15,
         backgroundColor: "#f57777",
         borderRadius: 3,
-        margin: 10,
+        margin: 5,
+      },
+      topBarText: {
+        fontFamily: "MontserratRegular",
+        marginTop: 4,
+        color: "black",
+      },
+      containerTopBar: {
+        alignSelf: "stretch",
+        backgroundColor: "#000",
+        height: 52,
+        flexDirection: "row", 
+        backgroundColor: "white",
+        alignItems: "center",
+        justifyContent: "space-between", 
+        paddingLeft: 10,
+        paddingRight: 10,
       },
 
 })

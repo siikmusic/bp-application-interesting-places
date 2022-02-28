@@ -51,16 +51,16 @@ export class VerifyPlaceList extends Component {
     return str;
   }
   onPlaceDeleted = () => {
+
+    alert("Place deleted");
+  };
+  onPlaceValidated = (place) => {
     var newPlaceList = [...this.state.placeList];
     newPlaceList.splice(this.state.selectedIndex, 1);
     this.setState((prevState) => ({
       placeList: (prevState.placeList = newPlaceList),
     }));
-    alert("Place deleted");
-  };
-  onPlaceValidated = (place) => {
-    alert("Place Verified");
-    this.state.refreshFlatlist = !this.state.refreshFlatlist;
+    console.log(this.state.refreshFlatlist);
   };
   setVerified = (place) => {
     validatePlace(place, this.onPlaceValidated);
@@ -89,21 +89,22 @@ export class VerifyPlaceList extends Component {
             renderItem={({ item }) => (
               <ScrollView contentContainerStyle={styles.contentContainer}>
                 <View style={styles.place}>
-                  <Image style={styles.image} source={{ uri: item.uri }} />
+                  <Image style={styles.image} source={{ uri: item.data().uri }} />
                   <View style={styles.margin}>
-                    <Text style={styles.heading1}>Name: {item.name}</Text>
-                    <Text style={styles.heading2}>Info: {item.info}</Text>
+                    <Text style={styles.heading1}>Name: {item.data().name}</Text>
+                    <Text style={styles.heading2}>Info: {item.data().info}</Text>
                   </View>
                   <View
                     style={{ flexDirection: "row", alignItems: "flex-end" }}
                   >
                     <View style={styles.categoryContainer}>
                       <Text style={{ padding: 5 }}>
-                        {this.Capitalize(item.category)}
+                        {this.Capitalize(item.data().category)}
                       </Text>
                     </View>
                     <TouchableOpacity
                       onPress={() => {
+
                         deletePlace(item, this.onPlaceDeleted);
                       }}
                       style={{ marginLeft: "auto" }}
@@ -112,6 +113,7 @@ export class VerifyPlaceList extends Component {
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={() => {
+
                         this.setVerified(item);
                       }}
                       style={{ marginLeft: 5, marginRight: 5 }}

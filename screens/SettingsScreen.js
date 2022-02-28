@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   View,
   SafeAreaView,
@@ -29,8 +29,12 @@ const ProfileScreen = () => {
   const navigation = useNavigation();
   useFocusEffect(
     useCallback(() => {
-      const unsubscribe = setUser(auth.currentUser);
-      
+      var unsubscribe;
+      auth.onAuthStateChanged((user) => {
+        unsubscribe = setUser(user);
+
+      })
+      console.log("unsubscribe")
       return () => unsubscribe;
     }, [])
   );
@@ -43,9 +47,14 @@ const ProfileScreen = () => {
       })
       .catch((error) => alert(error.messege));
   };
-
+  useEffect(() => {
+    setUser(auth.currentUser);
+  },[auth.currentUser])
   const handleEdit = () => {
     navigation.navigate("Edit Profile");
+  };
+  const handleFAQ = () => {
+    navigation.navigate("FAQScreen");
   };
   const DisplayName = () => {
     if (user.displayName) {
@@ -142,7 +151,7 @@ const ProfileScreen = () => {
               style={{
                 fontFamily: "MontserratRegular",
                 color: "#000",
-                marginLeft: 3,
+                marginLeft: 5,
               }}
             >
               {user.phoneNumber ? user.phoneNumber : <Text>+123 456 789</Text>}
@@ -154,7 +163,7 @@ const ProfileScreen = () => {
               style={{
                 fontFamily: "MontserratRegular",
                 color: "#000",
-                marginLeft: 3,
+                marginLeft: 5,
               }}
             >
               {user.email}
@@ -163,7 +172,7 @@ const ProfileScreen = () => {
         </View>
 
         <View style={styles.menuWrapper}>
-          <TouchableRipple onPress={() => {}}>
+          <TouchableRipple onPress={() => {navigation.navigate("FAQScreen")}}>
             <View style={styles.menuItem}>
               <MaterialIcons name="contact-support" size={24} color="white" />
               <Text style={styles.menuItemText}>FAQ</Text>
@@ -227,12 +236,14 @@ const styles = StyleSheet.create({
   userInfoSection2: {
     marginBottom: 25,
     bottom: 80,
+
   },
   userInfoSection: {
     paddingHorizontal: 30,
     marginBottom: 25,
     alignItems: "center",
     bottom: 80,
+
   },
   footer: {
     flex: 7,
@@ -276,7 +287,6 @@ const styles = StyleSheet.create({
   menuItem: {
     flexDirection: "row",
     paddingVertical: 15,
-    marginLeft: 20,
 
   },
   menuItemText: {

@@ -18,6 +18,7 @@ import * as Location from "expo-location";
 import { useFonts } from "expo-font";
 import { Ionicons } from "@expo/vector-icons";
 import categories from "../data/categories.json"
+import { ActivityIndicator, Colors } from 'react-native-paper';
 
 const PlaceAddScreen = ({route}) => {
   const geofire = require('geofire-common');
@@ -27,6 +28,7 @@ const PlaceAddScreen = ({route}) => {
   const [pickedImagePath, setPickedImagePath] = useState(null);
   const [downloadUrl, setUrl] = useState("");
   const [selectedValue, setSelectedValue] = useState("");
+  const [isUploading, setIsUploading] = useState(false)
   const [mapRegion, setMapRegion] = useState({
     latitude: route.params.location.latitude,
     longitude: route.params.location.longitude,
@@ -100,7 +102,10 @@ const PlaceAddScreen = ({route}) => {
       const blob = await response.blob();
       const hash = geofire.geohashForLocation([pin.latitude, pin.longitude]);
       const ref = storage.ref().child(filename);
-      await ref.put(blob);
+      setIsUploading(true)
+      await ref.put(blob).then(() =>{
+        setIsUploading(false);
+      });
       const url = await ref
         .getDownloadURL()
         .then(function (url) {
@@ -232,6 +237,10 @@ const PlaceAddScreen = ({route}) => {
         <TouchableOpacity onPress={addNewPlace} style={styles.button1}>
           <Text style={styles.buttonOutlineTextWhite}>Add Place</Text>
         </TouchableOpacity>
+        {isUploading ? (
+            <ActivityIndicator size = {"large"} animating={true} color={Colors.blue800} />
+        ):(<></>)}
+
       </View>
     </KeyboardAvoidingView>
   );

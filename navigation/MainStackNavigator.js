@@ -33,7 +33,8 @@ import SettingsScreen from "../screens/SettingsScreen";
 import EditProfileScreen from "../screens/EditProfileScreen";
 import InitPreferencesScreen from "../screens/InitPreferencesScreen";
 import SettingScreen from "../screens/SettingScreen";
-
+import FAQScreen from "../screens/FAQScreen";
+import EditPreferencesScreen from "../screens/EditPreferencesScreen";
 import { Ionicons } from "@expo/vector-icons";
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -58,6 +59,11 @@ const HomeStack = () => {
         component={PlaceDetailScreen}
         options={{ headerShown: false }}
       />
+        <Stack.Screen
+          name="Preferences"
+          component={InitPreferencesScreen}
+          options={{ headerShown: false }}
+        />
     </Stack.Navigator>
   );
 };
@@ -102,11 +108,21 @@ const SettingStack = () => {
       <Stack.Screen
         name="Settings"
         component={SettingScreen}
-        options={{ headerShown: false }}
+        options={{ headerShown: true }}
       />
       <Stack.Screen
         name="SettingsScreen"
         component={SettingsScreen}
+        options={{ headerShown: false }}
+      /> 
+      <Stack.Screen
+        name="FAQScreen"
+        component={FAQScreen}
+        options={{ headerShown: false }}
+      />
+            <Stack.Screen
+        name="EditPreferencesScreen"
+        component={EditPreferencesScreen}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>
