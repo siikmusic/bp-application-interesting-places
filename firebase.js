@@ -15,13 +15,12 @@ const firebaseConfig = {
 let app;
 if (firebase.apps.length === 0) {
   app = firebase.initializeApp(firebaseConfig);
+  firebase.firestore().settings({ experimentalForceLongPolling: true }); 
 } else {
   app = firebase.app();
 }
 const auth = firebase.auth();
 const firestore = firebase.firestore(app);
 const storage = firebase.storage(app);
-export const PlaceRef = firestore.collection("Places");
-export const UserRef = firestore.collection("Users");
 
 export { auth, firestore, storage };

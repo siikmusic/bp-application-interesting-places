@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
   StyleSheet,
   Text,
@@ -10,13 +10,12 @@ import {
   ScrollView,
 } from "react-native";
 
-import { auth, firestore } from "../firebase";
 import { useNavigation } from "@react-navigation/core";
 
 import { useFonts } from "expo-font";
 
 import Constants from "expo-constants";
-import { Ionicons, AntDesign } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import MapView, { Marker } from "react-native-maps";
@@ -26,17 +25,8 @@ const PlaceDetailScreen = (props) => {
     MontserratRegular: require("../assets/fonts/Montserrat-Regular.ttf"),
     MontserratBold: require("../assets/fonts/Montserrat-SemiBold.ttf"),
   });
-  const [currentUser, setCurrentUser] = useState({});
   const navigation = useNavigation();
-  const [isLiked, setIsLiked] = useState()
-  const placeAddNavigate = () => {
-    navigation.replace("PlaceAddScreen");
-  };
-  const checkAdmin = async () => {
-    var snapshot = await firestore.collection("Users").doc(auth.currentUser.uid);
-    setCurrentUser(snapshot);
 
-  };
   const navigateHome = () => {
     navigation.goBack();
   };
@@ -49,21 +39,26 @@ const PlaceDetailScreen = (props) => {
     longitudeDelta: 0.0922,
     latitudeDelta: 0.0421,
   };
-  const Capitalize = (str) => {
-    return str.charAt(0).toUpperCase() + str.slice(1);
+  const checkUri = (uri) => {
+    if (uri.includes("PhotoService")) {
+      const photo_reference = uri.substring(
+        uri.indexOf("GetPhoto?") + 9,
+        uri.lastIndexOf("&callback")
+      );
+      const final = photo_reference.replace("1sAap", "Aap");
+      uri =
+        "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=" +
+        final +
+        "&key=AIzaSyCNYU8Q6lggN_ZPXxuaxuXuB-aq2XZJk04";
+      console.log(uri);
+    }
+    return uri;
   };
-  useEffect(() => {
-    checkAdmin();
-  }, []);
-
-  useEffect(() => {
-    setIsLiked(props.route.params.isLiked);  
-  },[props.route.params.isLiked])
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.head}>
         <ImageBackground
-          source={{ uri: myPlace.uri }}
+          source={{ uri: checkUri(myPlace.uri) }}
           style={{
             height: Dimensions.get("window").height / 2,
             width: "100%",
@@ -102,7 +97,7 @@ const PlaceDetailScreen = (props) => {
                   color="white"
                 />
 
-                <Text style={styles.heading2White}>{distance}km</Text>
+                <Text style={styles.heading2White}>{distance}</Text>
               </View>
             </View>
             <View style={styles.placeIcon}>
@@ -115,7 +110,7 @@ const PlaceDetailScreen = (props) => {
         <View>
           <View style={{ flexDirection: "row" }}>
             <Text style={styles.heading1}>About</Text>
-           <View style={{ marginLeft: "auto" }}>
+            <View style={{ marginLeft: "auto" }}>
               <TouchableOpacity onPress={() => {}}></TouchableOpacity>
             </View>
           </View>

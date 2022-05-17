@@ -3,24 +3,18 @@ import {
   Text,
   View,
   FlatList,
-  SafeAreaView,
-  ListItem,
   StyleSheet,
   Image,
   ScrollView,
   TouchableOpacity,
 } from "react-native";
-import { PlaceRef, firestore } from "../firebase";
 import {
-  addPlace,
   getUnVerifiedPlaces,
   validatePlace,
   deletePlace,
 } from "../api/PlacesApi";
-import { MaterialIcons, AntDesign } from "@expo/vector-icons";
-import firebase from "firebase/app";
+import { AntDesign } from "@expo/vector-icons";
 import "firebase/firestore";
-import { useFonts } from "expo-font";
 
 export class VerifyPlaceList extends Component {
   state = {
@@ -54,7 +48,7 @@ export class VerifyPlaceList extends Component {
 
     alert("Place deleted");
   };
-  onPlaceValidated = (place) => {
+  onPlaceValidated = () => {
     var newPlaceList = [...this.state.placeList];
     newPlaceList.splice(this.state.selectedIndex, 1);
     this.setState((prevState) => ({

@@ -13,18 +13,13 @@ import {
 } from "react-native";
 import { auth } from "../firebase";
 import { useNavigation } from "@react-navigation/core";
-import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
 import AppLoading from "expo-app-loading";
-import { FontAwesome } from "react-native-vector-icons";
-import { AntDesign } from "@expo/vector-icons";
 import { Feather } from "@expo/vector-icons";
-
 const LoginScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [fontsLoaded, setfontsLoaded] = useState(false);
   const [secureTextEntry, setSecureTextEntry] = useState(true);
   const [loaded] = useFonts({
     MontserratRegular: require("../assets/fonts/Montserrat-Regular.ttf"),

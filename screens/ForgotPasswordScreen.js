@@ -7,18 +7,13 @@ import {
   View,
   TouchableOpacity,
   BackHandler,
-  Alert,
   ImageBackground,
   Dimensions,
 } from "react-native";
 import { auth } from "../firebase";
 import { useNavigation } from "@react-navigation/core";
-import { FontAwesome } from "react-native-vector-icons";
-import { addUser } from "../api/PlacesApi";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
-import AppLoading from "expo-app-loading";
-import { AntDesign } from "@expo/vector-icons";
 import { Feather } from "@expo/vector-icons";
 
 const ForgotPasswordScreen = () => {

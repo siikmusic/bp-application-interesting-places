@@ -1,17 +1,6 @@
 import React, { useState, useCallback, useEffect } from "react";
-import {
-  View,
-  SafeAreaView,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-} from "react-native";
-import {
-  Avatar,
-  Title,
-  Text,
-  TouchableRipple,
-} from "react-native-paper";
+import { View, SafeAreaView, StyleSheet, TouchableOpacity } from "react-native";
+import { Avatar, Title, Text, TouchableRipple } from "react-native-paper";
 import Constants from "expo-constants";
 import { useFonts } from "expo-font";
 import { auth, firestore } from "../firebase";
@@ -29,12 +18,12 @@ const ProfileScreen = () => {
   const navigation = useNavigation();
   useFocusEffect(
     useCallback(() => {
+      setUser(auth.currentUser);
       var unsubscribe;
       auth.onAuthStateChanged((user) => {
         unsubscribe = setUser(user);
-
-      })
-      console.log("unsubscribe")
+      });
+      console.log("unsubscribe");
       return () => unsubscribe;
     }, [])
   );
@@ -49,7 +38,7 @@ const ProfileScreen = () => {
   };
   useEffect(() => {
     setUser(auth.currentUser);
-  },[auth.currentUser])
+  }, [auth.currentUser]);
   const handleEdit = () => {
     navigation.navigate("Edit Profile");
   };
@@ -90,7 +79,7 @@ const ProfileScreen = () => {
 
   const DisplayAvatar = () => {
     var uri = user.photoURL;
-    console.log(uri)
+    console.log(uri);
     if (uri) {
       return (
         <Avatar.Image source={{ uri: uri }} size={100} style={styles.avatar} />
@@ -152,6 +141,7 @@ const ProfileScreen = () => {
                 fontFamily: "MontserratRegular",
                 color: "#000",
                 marginLeft: 5,
+                marginTop: 2,
               }}
             >
               {user.phoneNumber ? user.phoneNumber : <Text>+123 456 789</Text>}
@@ -164,21 +154,30 @@ const ProfileScreen = () => {
                 fontFamily: "MontserratRegular",
                 color: "#000",
                 marginLeft: 5,
+                marginTop: 2,
               }}
             >
-              {user.email}
+              test@gmail.com
             </Text>
           </View>
         </View>
 
         <View style={styles.menuWrapper}>
-          <TouchableRipple onPress={() => {navigation.navigate("FAQScreen")}}>
+          <TouchableRipple
+            onPress={() => {
+              navigation.navigate("FAQScreen");
+            }}
+          >
             <View style={styles.menuItem}>
               <MaterialIcons name="contact-support" size={24} color="white" />
               <Text style={styles.menuItemText}>FAQ</Text>
             </View>
           </TouchableRipple>
-          <TouchableRipple onPress={() => {navigation.navigate("Edit Profile");}}>
+          <TouchableRipple
+            onPress={() => {
+              navigation.navigate("Edit Profile");
+            }}
+          >
             <View style={styles.menuItem}>
               <MaterialIcons name="settings" size={24} color="white" />
               <Text style={styles.menuItemText}>Settings</Text>
@@ -236,14 +235,12 @@ const styles = StyleSheet.create({
   userInfoSection2: {
     marginBottom: 25,
     bottom: 80,
-
   },
   userInfoSection: {
     paddingHorizontal: 30,
     marginBottom: 25,
     alignItems: "center",
     bottom: 80,
-
   },
   footer: {
     flex: 7,
@@ -281,17 +278,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  menuWrapper: {
-
-  },
+  menuWrapper: {},
   menuItem: {
     flexDirection: "row",
     paddingVertical: 15,
-
   },
   menuItemText: {
     color: "#fff",
     marginLeft: 5,
+    marginTop: -2,
     fontWeight: "800",
     fontSize: 18,
     lineHeight: 26,

@@ -1,11 +1,5 @@
 import React, { useEffect } from "react";
-import {
-  StyleSheet,
-  Text,
-  View,
-  BackHandler,
-  TouchableOpacity,
-} from "react-native";
+import { StyleSheet, Text, View, BackHandler } from "react-native";
 import { useNavigation } from "@react-navigation/core";
 import { VerifyPlaceList } from "../components/VerifyPlaceList";
 import Constants from "expo-constants";
@@ -59,10 +53,10 @@ const styles = StyleSheet.create({
   containerTopBar: {
     alignSelf: "stretch",
     height: 52,
-    flexDirection: "row", // row
+    flexDirection: "row",
     backgroundColor: "white",
     alignItems: "center",
-    justifyContent: "space-between", // center, space-around
+    justifyContent: "space-between",
     paddingLeft: 10,
     paddingRight: 10,
   },

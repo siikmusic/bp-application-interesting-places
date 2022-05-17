@@ -25,6 +25,7 @@
           "apiKey": "AIzaSyB0wt4bt_N1IPGps8YX494BNvmNjV_Rq1c"
         }
       },
+      "softwareKeyboardLayoutMode": "pan",
       "package": "com.simonpavlik.interestingplaces",
       "versionCode": 1,
       "adaptiveIcon": {

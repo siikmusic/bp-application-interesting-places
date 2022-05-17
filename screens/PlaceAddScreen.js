@@ -10,25 +10,24 @@ import {
   Picker,
 } from "react-native";
 import { useNavigation } from "@react-navigation/core";
-import { firestore, PlaceRef, storage } from "../firebase";
+import { storage } from "../firebase";
 import { addPlace } from "../api/PlacesApi";
 import * as ImagePicker from "expo-image-picker";
 import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
 import { useFonts } from "expo-font";
 import { Ionicons } from "@expo/vector-icons";
-import categories from "../data/categories.json"
-import { ActivityIndicator, Colors } from 'react-native-paper';
+import categories from "../data/categories.json";
+import { ActivityIndicator, Colors } from "react-native-paper";
 
-const PlaceAddScreen = ({route}) => {
-  const geofire = require('geofire-common');
+const PlaceAddScreen = ({ route }) => {
+  const geofire = require("geofire-common");
   const navigation = useNavigation();
   const [name, setName] = useState("");
   const [info, setInfo] = useState("");
   const [pickedImagePath, setPickedImagePath] = useState(null);
-  const [downloadUrl, setUrl] = useState("");
   const [selectedValue, setSelectedValue] = useState("");
-  const [isUploading, setIsUploading] = useState(false)
+  const [isUploading, setIsUploading] = useState(false);
   const [mapRegion, setMapRegion] = useState({
     latitude: route.params.location.latitude,
     longitude: route.params.location.longitude,
@@ -37,10 +36,8 @@ const PlaceAddScreen = ({route}) => {
   });
   const [pin, setPin] = useState({
     latitude: route.params.location.latitude,
-    longitude: route.params.location.longitude
-  }
-
-  );
+    longitude: route.params.location.longitude,
+  });
   const [loaded] = useFonts({
     MontserratRegular: require("../assets/fonts/Montserrat-Regular.ttf"),
     MontserratBold: require("../assets/fonts/Montserrat-SemiBold.ttf"),
@@ -102,8 +99,8 @@ const PlaceAddScreen = ({route}) => {
       const blob = await response.blob();
       const hash = geofire.geohashForLocation([pin.latitude, pin.longitude]);
       const ref = storage.ref().child(filename);
-      setIsUploading(true)
-      await ref.put(blob).then(() =>{
+      setIsUploading(true);
+      await ref.put(blob).then(() => {
         setIsUploading(false);
       });
       const url = await ref
@@ -149,8 +146,8 @@ const PlaceAddScreen = ({route}) => {
   }, []);
 
   const PickerItems = categories.categories.map((i, key) => (
-    <Picker.Item label={i.toString()} key = {key }value={i.toString()} />
-));
+    <Picker.Item label={i.toString()} key={key} value={i.toString()} />
+  ));
   const returnToHome = useEffect(() => {
     const backAction = () => {
       navigation.replace("TabNavigator");
@@ -165,7 +162,7 @@ const PlaceAddScreen = ({route}) => {
   }, []);
 
   return (
-    <KeyboardAvoidingView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.containerTopBar}>
         <View style={styles.shadow}>
           <TouchableOpacity onPress={navigateHome}>
@@ -212,13 +209,12 @@ const PlaceAddScreen = ({route}) => {
         >
           <Marker
             draggable
-            coordinate={pin}            
+            coordinate={pin}
             onDragEnd={(e) => {
               setPin({
                 latitude: e.nativeEvent.coordinate.latitude,
                 longitude: e.nativeEvent.coordinate.longitude,
               });
-
             }}
           />
         </MapView>
@@ -228,7 +224,7 @@ const PlaceAddScreen = ({route}) => {
         style={{ height: 50, width: 150 }}
         onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}
       >
-          {PickerItems}
+        {PickerItems}
       </Picker>
       <View style={styles.buttonContainer}>
         <TouchableOpacity onPress={showImagePicker} style={styles.button1}>
@@ -238,11 +234,16 @@ const PlaceAddScreen = ({route}) => {
           <Text style={styles.buttonOutlineTextWhite}>Add Place</Text>
         </TouchableOpacity>
         {isUploading ? (
-            <ActivityIndicator size = {"large"} animating={true} color={Colors.blue800} />
-        ):(<></>)}
-
+          <ActivityIndicator
+            size={"large"}
+            animating={true}
+            color={Colors.blue800}
+          />
+        ) : (
+          <></>
+        )}
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 };
 

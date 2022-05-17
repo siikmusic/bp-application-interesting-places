@@ -1,9 +1,12 @@
 
 function filterById(jsonObject, id) {return jsonObject.filter(function(jsonObject) {return (jsonObject['name'] == id);})[0];}
+
 const countOccurrences = (arr, val) => arr.reduce((a, v) => (v === val ? a + 1 : a), 0);
+
 function capitalizeFirstLetter(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
+
 const calculateUserPreferredCategory = (likedPlaces, data) => {
     var likedCategories = []
     likedPlaces.forEach(place => {
@@ -17,6 +20,7 @@ const calculateUserPreferredCategory = (likedPlaces, data) => {
     const sortedCategories = new Map([...map.entries()].sort((a, b) => b[1] - a[1]));
     return [...sortedCategories.keys()]
 }
+
 // Returns similar places a specific place
 export const getSimilarPlaces = (place, similarity, userPreference, data) => {
   var matrix = similarity.getDistanceMatrix()
@@ -25,6 +29,9 @@ export const getSimilarPlaces = (place, similarity, userPreference, data) => {
   var placeMatrix = matrix.matrix[index]
   var map = new Map()
   for(var i = 0; i < (placeMatrix.length); i++) {
+
+    // Check if place category is in any of his favorite categories
+    // and if yes, multiply the score of the place
     if(userPreference.includes(data[i].category) ) {
       if(userPreference[0] == data[i].category )
         placeMatrix[i] *= 1.5
@@ -72,6 +79,8 @@ export const getPreference = (preferenceId, similarity, isInit, data, likedPlace
       recommendedPlaces.set(element[0], element[1])
     })
     const sortedRecommendedPlaces = new Map([...recommendedPlaces.entries()].sort((a, b) => b[1] - a[1]));
+
+    // Return top 15 places
     return(Array.from(sortedRecommendedPlaces).slice(0,15))
 
 } 

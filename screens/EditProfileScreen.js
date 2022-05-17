@@ -3,11 +3,9 @@ import {
   View,
   Text,
   TouchableOpacity,
-  ImageBackground,
   TextInput,
   StyleSheet,
   KeyboardAvoidingView,
-  Image,
 } from "react-native";
 import { auth, storage } from "../firebase";
 import { Avatar } from "react-native-paper";
@@ -15,28 +13,29 @@ import Constants from "expo-constants";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/core";
-import {Slider} from '@miblanchard/react-native-slider';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Slider } from "@miblanchard/react-native-slider";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { ActivityIndicator, Colors } from "react-native-paper";
 
 const EditProfileScreen = () => {
   const [image, setImage] = useState(
     "https://api.adorable.io/avatars/80/abott@adorable.png"
   );
-
+  const [isUploading, setIsUploading] = useState(false);
   const [pickedImagePath, setPickedImagePath] = useState(null);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [distance, setDistance] = useState(50)
+  const [distance, setDistance] = useState(50);
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const navigation = useNavigation();
-    
+
   const showImagePicker = async () => {
     const permissionResult =
       await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (permissionResult.granted === false) {
-      alert("You've refused to allow this appp to access your photos!");
+      alert("You've refused to allow this app to access your photos!");
       return;
     }
 
@@ -48,31 +47,37 @@ const EditProfileScreen = () => {
   };
   const storeDistance = async () => {
     try {
-      await AsyncStorage.setItem('@distance', distance.toString())
+      await AsyncStorage.setItem(
+        "@distance" + auth.currentUser.uid,
+        distance.toString()
+      );
     } catch (e) {
       // saving error
     }
-  }
+  };
   const getDistance = async () => {
     try {
-      const value = await AsyncStorage.getItem('@distance')
-      if(value !== null) {
-        setDistance(value)
+      const value = await AsyncStorage.getItem(
+        "@distance" + auth.currentUser.uid
+      );
+      if (value !== null) {
+        setDistance(value);
       }
-    } catch(e) {
+    } catch (e) {
       // error reading value
     }
-  }
+  };
 
   useEffect(() => {
     getDistance();
-  },[])
+    console.log(auth.currentUser);
+  }, []);
 
   const openCamera = async () => {
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
 
     if (permissionResult.granted === false) {
-      alert("You've refused to allow this appp to access your camera!");
+      alert("You've refused to allow this app to access your camera!");
       return;
     }
 
@@ -84,10 +89,10 @@ const EditProfileScreen = () => {
   };
   const updateDistance = (distance) => {
     setDistance(distance);
-  }
+  };
   const submit = async () => {
     const fullName = firstName.concat(" ", lastName);
-    
+
     storeDistance();
     if (pickedImagePath) {
       const uploadUri = pickedImagePath;
@@ -96,37 +101,53 @@ const EditProfileScreen = () => {
       const blob = await response.blob();
 
       const ref = storage.ref().child(filename);
-
-      await ref.put(blob);
+      setIsUploading(true);
+      await ref.put(blob).then(() => {
+        setIsUploading(false);
+      });
       const url = await ref
         .getDownloadURL()
         .then(function (url) {
-          if (fullName) {
-            auth.currentUser.updateProfile({
-              displayName: fullName,
+          auth.currentUser
+            .updateProfile({
+              displayName:
+                fullName != null ? fullName : auth.currentUser.displayName,
               photoURL: url,
+              phoneNumber: phone != null ? phone : auth.currentUser.phoneNumber,
+            })
+            .then(() => {
+              alert("Success!");
+            })
+            .catch(() => {
+              alert("Error updating profile.");
             });
-          } else {
-            auth.currentUser.updateProfile({
-              displayName: auth.currentUser.displayName,
-              photoURL: url,
-            });
-          }
-          alert("Success!");
         })
         .catch((error) => {
-          throw error;
+          alert("Error updating profile.");
         });
     } else {
-      auth.currentUser.updateProfile({
-        displayName: fullName,
-        photoURL: auth.currentUser.photoURL,
-      });
+      auth.currentUser
+        .updateProfile({
+          displayName:
+            fullName != null ? fullName : auth.currentUser.displayName,
+          photoURL: auth.currentUser.photoURL,
+          phoneNumber: phone != null ? phone : auth.currentUser.phoneNumber,
+        })
+        .then(() => {
+          alert("Success!");
+        })
+        .catch(() => {
+          alert("Error updating profile.");
+        });
     }
+    if (email != null)
+      auth.currentUser.updateEmail(email).then(() => {
+        alert("Success!");
+      });
   };
-  const editPreference = () =>{
-    navigation.navigate("EditPreferencesScreen", {uid: auth.currentUser.uid})
-  }
+  const editPreference = () => {
+    navigation.navigate("EditPreferencesScreen", { uid: auth.currentUser.uid });
+  };
   const DisplayAvatar = () => {
     var uri = auth.currentUser.photoURL;
     if (uri) {
@@ -155,7 +176,7 @@ const EditProfileScreen = () => {
         >
           <View style={{ flexDirection: "row" }}>
             <Ionicons name="chevron-back-outline" size={24} color="black" />
-            <Text>Back</Text>
+            <Text style={{ marginTop: 2 }}>Back</Text>
           </View>
         </TouchableOpacity>
         <TouchableOpacity>
@@ -193,11 +214,10 @@ const EditProfileScreen = () => {
               },
             ]}
           >
-              {!!auth.currentUser.displayName
-              ? auth.currentUser.displayName.split(' ').slice(0, -1).join(' ')
+            {!!auth.currentUser.displayName
+              ? auth.currentUser.displayName.split(" ").slice(0, -1).join(" ")
               : "Your Name"}
-
-            </TextInput>
+          </TextInput>
         </View>
         <View style={styles.action}>
           <TextInput
@@ -212,10 +232,10 @@ const EditProfileScreen = () => {
               },
             ]}
           >
-              {!!auth.currentUser.displayName
-              ? auth.currentUser.displayName.split(' ').slice(-1).join(' ')
+            {!!auth.currentUser.displayName
+              ? auth.currentUser.displayName.split(" ").slice(-1).join(" ")
               : "Your Name"}
-            </TextInput>
+          </TextInput>
         </View>
         <View style={styles.action}>
           <TextInput
@@ -231,9 +251,8 @@ const EditProfileScreen = () => {
               },
             ]}
           >
-              {auth.currentUser.phone}
-
-            </TextInput>
+            {auth.currentUser.phone}
+          </TextInput>
         </View>
         <View style={styles.action}>
           <TextInput
@@ -251,28 +270,41 @@ const EditProfileScreen = () => {
           >
             {auth.currentUser.email}
           </TextInput>
-
         </View>
         <View>
           <View style={styles.distanceSliderText}>
-            <Text>
-              Distance Preference
-            </Text>
-            <Text style={{color: "grey"}}>
-              {distance}km
-            </Text>
+            <Text>Distance Preference</Text>
+            <Text style={{ color: "grey" }}>{distance}km</Text>
           </View>
 
-          <Slider trackStyle = {{backgroundColor: "white"}}   step = {1} minimumValue = {25} maximumValue = {200} value = {distance} onValueChange={value => updateDistance(value)}/>
+          <Slider
+            trackStyle={{ backgroundColor: "white" }}
+            step={1}
+            minimumValue={25}
+            maximumValue={130}
+            value={distance}
+            onValueChange={(value) => updateDistance(value)}
+          />
         </View>
-        <TouchableOpacity style={styles.commandButton2} onPress={editPreference}>
+        <TouchableOpacity
+          style={styles.commandButton2}
+          onPress={editPreference}
+        >
           <Text style={styles.panelButtonTitleBlack}>Edit Preference</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.commandButton} onPress={submit}>
           <Text style={styles.panelButtonTitle}>Submit</Text>
         </TouchableOpacity>
-        
       </View>
+      {isUploading ? (
+        <ActivityIndicator
+          size={"large"}
+          animating={true}
+          color={Colors.blue800}
+        />
+      ) : (
+        <></>
+      )}
     </KeyboardAvoidingView>
   );
 };
@@ -328,12 +360,6 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: "#FFFFFF",
     paddingTop: 20,
-    // borderTopLeftRadius: 20,
-    // borderTopRightRadius: 20,
-    // shadowColor: '#000000',
-    // shadowOffset: {width: 0, height: 0},
-    // shadowRadius: 5,
-    // shadowOpacity: 0.4,
   },
   header: {
     backgroundColor: "#FFFFFF",
@@ -341,7 +367,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: -1, height: -3 },
     shadowRadius: 2,
     shadowOpacity: 0.4,
-    // elevation: 5,
     paddingTop: 20,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
@@ -406,6 +431,6 @@ const styles = StyleSheet.create({
   },
   distanceSliderText: {
     flexDirection: "row",
-    justifyContent: "space-between"
-  }
+    justifyContent: "space-between",
+  },
 });

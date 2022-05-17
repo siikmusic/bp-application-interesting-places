@@ -3,23 +3,20 @@ import {
   StyleSheet,
   Text,
   View,
-  SafeAreaView,
   TouchableOpacity,
-  Image,
   FlatList,
   ImageBackground,
 } from "react-native";
-import { getLikedPlacesNoUser, deleteLikedPlace, addPlaceFromData
-} from "../api/PlacesApi";
+import { getLikedPlacesNoUser, deleteLikedPlace } from "../api/PlacesApi";
 import Constants from "expo-constants";
 import { Dimensions } from "react-native";
-import { MaterialIcons, AntDesign } from "@expo/vector-icons";
+import { AntDesign } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/core";
 import * as Location from "expo-location";
 import { getDistance } from "geolib";
 import { useFonts } from "expo-font";
 import { useFocusEffect } from "@react-navigation/native";
-import { ActivityIndicator, Colors } from 'react-native-paper';
+import { ActivityIndicator, Colors } from "react-native-paper";
 const MyListScreen = () => {
   const [likedPlaces, setLikedPlaces] = useState([]);
   const [location, setLocation] = useState({
@@ -32,7 +29,7 @@ const MyListScreen = () => {
   });
   const [loading, setLoading] = useState(true);
   const onPlacesRecieved = (placeList) => {
-    if(likedPlaces !== []){
+    if (likedPlaces !== []) {
       setLikedPlaces(placeList);
       setLoading(false);
     }
@@ -49,21 +46,17 @@ const MyListScreen = () => {
     setLikedPlaces(filterData);
     deleteLikedPlace(item.data().name);
   };
-  const onPlaceAdded = () => {
-    console.log("onPlaceAdded");
-  }
 
   /* useEffect(() => {
     getLikedPlaces(onPlacesRecieved);
   }, []);*/
-  
+
   useFocusEffect(
-    useCallback( () => {
+    useCallback(() => {
       var unsubscribe;
 
       unsubscribe = getLikedPlacesNoUser(onPlacesRecieved);
 
-      
       return () => unsubscribe;
     }, [])
   );
@@ -89,66 +82,69 @@ const MyListScreen = () => {
     }
   };
   const navigation = useNavigation();
-  if(loading) {
+  if (loading) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size = {"large"} animating={true} color={Colors.blue800} />
+        <ActivityIndicator
+          size={"large"}
+          animating={true}
+          color={Colors.blue800}
+        />
       </View>
-    )
+    );
   }
-  
+
   return (
-    
     <View style={styles.container}>
       <View style={styles.statusBar} />
-      <View style={{ }}>
+      <View style={{}}>
         <Text style={styles.heading1}>My List</Text>
       </View>
       <View style={styles.container}>
-      {likedPlaces.length ? (
-        <FlatList
-          data={likedPlaces}
-          keyExtractor={(item, index) => {
-            return index;
-          }}
-          style={{marginBottom: 90}}
-          numColumns={2}
-          renderItem={({ item }) => (
-            <View style={styles.shadow}>
-              <TouchableOpacity
-                onPress={() => {
-                  navigation.navigate("Place Details", {
-                    place: item.data(),
-                    loc: getDist(item.data()),
-                  });
-                }}
-              >
-                <ImageBackground
-                  style={styles.image}
-                  source={{ uri: item.data().uri }}
+        {likedPlaces.length ? (
+          <FlatList
+            data={likedPlaces}
+            keyExtractor={(item, index) => {
+              return index;
+            }}
+            style={{ marginBottom: 90 }}
+            numColumns={2}
+            renderItem={({ item }) => (
+              <View style={styles.shadow}>
+                <TouchableOpacity
+                  onPress={() => {
+                    navigation.navigate("Place Details", {
+                      place: item.data(),
+                      loc: getDist(item.data()),
+                    });
+                  }}
                 >
-                  <TouchableOpacity
-                    onPress={() => {
-                      deleteItem(item);
-                    }}
-                    style={{
-                      marginLeft: "auto",
-                      marginRight: 10,
-                      marginBottom: 10,
-                    }} 
+                  <ImageBackground
+                    style={styles.image}
+                    source={{ uri: item.data().uri }}
                   >
-                    <AntDesign name="closecircle" size={20} color="#FF6962" />
-                  </TouchableOpacity>
-                </ImageBackground>
-              </TouchableOpacity>
-            </View>
-          )}
-        />
-      ) : (
-        <View style={{ flex: 1, justifyContent: "center"}}>
-          <Text>No Liked Places</Text>
-        </View>
-      )}
+                    <TouchableOpacity
+                      onPress={() => {
+                        deleteItem(item);
+                      }}
+                      style={{
+                        marginLeft: "auto",
+                        marginRight: 10,
+                        marginBottom: 10,
+                      }}
+                    >
+                      <AntDesign name="closecircle" size={20} color="#FF6962" />
+                    </TouchableOpacity>
+                  </ImageBackground>
+                </TouchableOpacity>
+              </View>
+            )}
+          />
+        ) : (
+          <View style={{ flex: 1, justifyContent: "center" }}>
+            <Text>No Liked Places</Text>
+          </View>
+        )}
       </View>
     </View>
   );
