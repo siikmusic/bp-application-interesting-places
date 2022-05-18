@@ -17,7 +17,7 @@ import {
 } from "../api/PlacesApi";
 import { PlaceList } from "../components/PlaceList";
 import { Feather } from "@expo/vector-icons";
-
+import categories from "../data/categories.json";
 import { Corpus, Similarity } from "tiny-tfidf";
 import { getPreference } from "../recommendation/Recommendation";
 import * as Location from "expo-location";
@@ -45,7 +45,7 @@ const HomeScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [likedPlaceListUpdated, setLikedPlaceListUpdated] = useState(false);
   const [sortedCategories, setSortedCategories] = useState();
-
+  const [granted, setGranted] = useState(true);
   const fetchFonts = async () =>
     await Font.loadAsync({
       MontserratRegular: require("../assets/fonts/Montserrat-Regular.ttf"),
@@ -72,6 +72,7 @@ const HomeScreen = () => {
   const fetchLocation = async () => {
     let { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== "granted") {
+      setGranted(false);
       return;
     }
     let loc = await Location.getCurrentPositionAsync({
@@ -97,17 +98,27 @@ const HomeScreen = () => {
 
   const fetchCategories = async () => {
     try {
-      const value = await AsyncStorage.getItem("@categories");
+      const value = await AsyncStorage.getItem(
+        "@categories" + auth.currentUser.uid
+      );
       if (value !== null) {
         var sortedCategories = JSON.parse(value);
-        sortedCategories.sort((a, b) =>
-          a.visitedCount < b.visitedCount
-            ? 1
-            : b.visitedCount < a.visitedCount
-            ? -1
-            : 0
-        );
+
+        if (typeof sortedCategories === "undefined") {
+          sortedCategories == categories;
+        } else {
+          sortedCategories.sort((a, b) =>
+            a.visitedCount < b.visitedCount
+              ? 1
+              : b.visitedCount < a.visitedCount
+              ? -1
+              : 0
+          );
+        }
+
         setSortedCategories(sortedCategories);
+      } else {
+        setSortedCategories(categories.categories);
       }
     } catch (e) {
       console.log(e);
@@ -116,7 +127,9 @@ const HomeScreen = () => {
 
   const fetchDistance = async () => {
     try {
-      const value = await AsyncStorage.getItem("@distance");
+      const value = await AsyncStorage.getItem(
+        "@distance" + auth.currentUser.uid
+      );
       if (value !== null) {
         if (value !== distance) {
           setDistance(value);
@@ -130,7 +143,6 @@ const HomeScreen = () => {
   };
   const handleRefresh = () => {
     setLikedPlaceListUpdated(false);
-
     setRefreshing(true);
   };
   const getRecommendation = () => {
@@ -144,12 +156,30 @@ const HomeScreen = () => {
     // create description and name matrix for corpus
     placeList.forEach((place) => {
       if (place) {
-        if (!place.info) descriptions.push(place.name);
-        else descriptions.push(place.info);
+        if (!place.info)
+          descriptions.push(
+            place.name +
+              " " +
+              place.category +
+              " " +
+              place.category +
+              " " +
+              place.category
+          );
+        else
+          descriptions.push(
+            place.info +
+              place.category +
+              " " +
+              place.category +
+              " " +
+              place.category +
+              " " +
+              place.category
+          );
         names.push(place.name);
       }
     });
-
     var newPlaceList = [...placeList];
     likedPlaceList.forEach((likedPlace) => {
       const info = likedPlace.data().info;
@@ -188,7 +218,8 @@ const HomeScreen = () => {
       similarity,
       isInit,
       newPlaceList,
-      likedPlaces
+      likedPlaces,
+      sortedCategories
     );
 
     var placeNames = recommendedPlaces.map((p) => p[0]);
@@ -253,7 +284,7 @@ const HomeScreen = () => {
   }, [refreshing]);
 
   useEffect(() => {
-    if (locationLoaded) {
+    if (locationLoaded && granted) {
       getVerifiedPlaces(onPlacesRecieved, location, distance);
       getMostPopularPlaces(onPopularPlacesReceived);
     }
@@ -274,17 +305,27 @@ const HomeScreen = () => {
         category: "Most Popular",
         places: popularPlaces,
       });
+      fetchCategories();
       sortedCategories.forEach((category) => {
         var categoryList = placeList.filter((place) => {
+          if (typeof category.category === "undefined") {
+            return place.category.toLowerCase() == category.toLowerCase();
+          }
           return (
             place.category.toLowerCase() == category.category.toLowerCase()
           );
         });
-
-        placesByCategory.push({
-          category: category.category,
-          places: categoryList,
-        });
+        if (typeof category.category === "undefined") {
+          placesByCategory.push({
+            category: category,
+            places: categoryList,
+          });
+        } else {
+          placesByCategory.push({
+            category: category.category,
+            places: categoryList,
+          });
+        }
       });
       setSortedPlaces(placesByCategory);
       setLoading(false);
@@ -302,7 +343,6 @@ const HomeScreen = () => {
       .get()
       .then((user) => {
         setCurrentUser(user);
-
         getLikedPlaces(onLikedPlacesReceived, user);
 
         if (user.data().isAdmin) setIsAdmin(true);
@@ -316,7 +356,6 @@ const HomeScreen = () => {
   };
   const allEmpty = (obj) => {
     Object.keys(obj).every(function (key) {
-      console.log(obj[key]);
       return obj[key].length === 0;
     });
   };
@@ -360,50 +399,67 @@ const HomeScreen = () => {
         </View>
 
         <View style={styles.container}>
-          <FlatList
-            data={sortedPlaces}
-            keyExtractor={(item, index) => {
-              return index;
-            }}
-            initialNumToRender={4}
-            getItemLayout={(data, index) => ({
-              length: 300,
-              offset: 300 * index,
-              index,
-            })}
-            style={{ marginBottom: 100 }}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={handleRefresh}
-              />
-            }
-            renderItem={({ item }) => (
-              <>
-                {item.places.length > 0 ? (
-                  <>
-                    <View style={{ marginLeft: 50, marginBottom: 10 }}>
-                      <Text style={styles.header}>{item.category}</Text>
-                    </View>
-                    <PlaceList
-                      sortedCategories={sortedCategories}
-                      user={currentUser}
-                      location={location}
-                      likedPlace={likedPlaceList}
-                      distanceUpdate={distanceUpdated}
-                      refreshing={refreshing}
-                      distance={distance}
-                      places={item.places}
-                      category={item.category}
-                    />
-                    <FlatListItemSeparator />
-                  </>
-                ) : (
-                  <></>
-                )}
-              </>
-            )}
-          />
+          {granted ? (
+            <FlatList
+              data={sortedPlaces}
+              keyExtractor={(item, index) => {
+                return index;
+              }}
+              initialNumToRender={2}
+              getItemLayout={(data, index) => ({
+                length: 300,
+                offset: 300 * index,
+                index,
+              })}
+              style={{ marginBottom: 100 }}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={handleRefresh}
+                />
+              }
+              renderItem={({ item }) => (
+                <>
+                  {item.places.length > 0 ? (
+                    <>
+                      <View style={{ marginLeft: 50, marginBottom: 10 }}>
+                        <Text style={styles.header}>{item.category}</Text>
+                      </View>
+                      <PlaceList
+                        sortedCategories={sortedCategories}
+                        user={currentUser}
+                        location={location}
+                        likedPlace={likedPlaceList}
+                        distanceUpdate={distanceUpdated}
+                        refreshing={refreshing}
+                        distance={distance}
+                        places={item.places}
+                        category={item.category}
+                      />
+                      <FlatListItemSeparator />
+                    </>
+                  ) : (
+                    <></>
+                  )}
+                </>
+              )}
+            />
+          ) : (
+            <>You must grand permission to use location</>
+          )}
+        </View>
+      </View>
+    );
+  } else if (!granted) {
+    return (
+      <View style={styles.container}>
+        <Text>You must grand permission to use location</Text>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.button2}>
+            <Text onPress={fetchLocation} style={styles.buttonOutlineTextBlue}>
+              Grand Permission
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
     );

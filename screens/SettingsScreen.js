@@ -23,7 +23,7 @@ const ProfileScreen = () => {
       auth.onAuthStateChanged((user) => {
         unsubscribe = setUser(user);
       });
-      console.log("unsubscribe");
+      console.log(user);
       return () => unsubscribe;
     }, [])
   );
@@ -134,19 +134,6 @@ const ProfileScreen = () => {
         </View>
 
         <View style={styles.userInfoSection2}>
-          <View style={styles.row}>
-            <MaterialIcons name="local-phone" size={24} color="black" />
-            <Text
-              style={{
-                fontFamily: "MontserratRegular",
-                color: "#000",
-                marginLeft: 5,
-                marginTop: 2,
-              }}
-            >
-              {user.phoneNumber ? user.phoneNumber : <Text>+123 456 789</Text>}
-            </Text>
-          </View>
           <View style={styles.row}>
             <MaterialIcons name="email" size={24} color="black" />
             <Text

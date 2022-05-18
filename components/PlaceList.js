@@ -58,8 +58,9 @@ export function PlaceList(props) {
     if (locationLoaded) {
       var filtered = [];
       filtered = props.places;
-      if (props.category.toString() === "Recommended") {
-      } else if (props.category.toString() === "Most Popular") {
+
+      if (props.category?.toString() === "Recommended") {
+      } else if (props.category?.toString() === "Most Popular") {
       } else {
         filtered.sort((a, b) => (getDist(a) >= getDist(b) ? 1 : -1));
       }
@@ -81,6 +82,8 @@ export function PlaceList(props) {
       );
       if (value !== null) {
         setDistance(value);
+      } else {
+        setDistance(50);
       }
     } catch (e) {
       console.log(e);
@@ -126,7 +129,6 @@ export function PlaceList(props) {
         "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=" +
         final +
         "&key=AIzaSyCNYU8Q6lggN_ZPXxuaxuXuB-aq2XZJk04";
-      console.log(uri);
     }
     return uri;
   };
@@ -159,7 +161,7 @@ export function PlaceList(props) {
             index,
           })}
           extraData={props.places}
-          initialNumToRender={4}
+          initialNumToRender={2}
           horizontal={true}
           showsHorizontalScrollIndicator={false}
           renderItem={({ item }) => (
@@ -167,7 +169,6 @@ export function PlaceList(props) {
               <TouchableOpacity
                 onPress={() => {
                   setCategoryVisited();
-                  console.log(item.uri);
                   navigation.navigate("Place Details", {
                     place: item,
                     loc: getDist(item),
@@ -204,6 +205,7 @@ export function PlaceList(props) {
                     <TouchableOpacity
                       onPress={() => {
                         addLiked(item.name);
+                        setCategoryVisited();
                         setLikedPlaceNames([...likedPlaceNames, item.name]);
                       }}
                     >

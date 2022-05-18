@@ -15,8 +15,8 @@ import { useNavigation } from "@react-navigation/core";
 import { addUser } from "../api/PlacesApi";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
-import categories from "../data/categories.json"
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import categories from "../data/categories.json";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Feather } from "@expo/vector-icons";
 
 const LoginScreen = () => {
@@ -24,7 +24,7 @@ const LoginScreen = () => {
   const [password, setPassword] = useState("");
   const [passwordValidation, setPasswordValidation] = useState("");
   const [secureTextEntry, setSecureTextEntry] = useState(true);
-  const [categoryObject,setCategoryObject] = useState()
+  const [categoryObject, setCategoryObject] = useState();
   const [] = useFonts({
     MontserratRegular: require("../assets/fonts/Montserrat-Regular.ttf"),
     MontserratBold: require("../assets/fonts/Montserrat-SemiBold.ttf"),
@@ -33,28 +33,31 @@ const LoginScreen = () => {
   const navigation = useNavigation();
   const storeCategoryObject = async () => {
     try {
-      await AsyncStorage.setItem('@categories', JSON.stringify(categoryObject))
+      await AsyncStorage.setItem(
+        "@categories" + auth.currentUser.uid,
+        JSON.stringify(categoryObject)
+      );
     } catch (e) {
       console.log(e);
     }
-  }
+  };
   const createCategories = () => {
-    var categoryObject = []
-    categories.categories.forEach(category =>{
+    var categoryObject = [];
+    categories.categories.forEach((category) => {
       categoryObject.push({
-        "category": category,
-        "visitedCount": 0
-      })
-    })
+        category: category,
+        visitedCount: 0,
+      });
+    });
     setCategoryObject(categoryObject);
-  }
+  };
   const onUserAdded = () => {
     storeCategoryObject();
     navigation.replace("Preferences");
   };
   useEffect(() => {
     createCategories();
-  },[])
+  }, []);
   const handleSignUp = () => {
     if (password == passwordValidation) {
       auth

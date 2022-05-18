@@ -50,7 +50,20 @@ const MyListScreen = () => {
   /* useEffect(() => {
     getLikedPlaces(onPlacesRecieved);
   }, []);*/
-
+  const checkUri = (uri) => {
+    if (uri.includes("PhotoService")) {
+      const photo_reference = uri.substring(
+        uri.indexOf("GetPhoto?") + 9,
+        uri.lastIndexOf("&callback")
+      );
+      const final = photo_reference.replace("1sAap", "Aap");
+      uri =
+        "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=" +
+        final +
+        "&key=AIzaSyCNYU8Q6lggN_ZPXxuaxuXuB-aq2XZJk04";
+    }
+    return uri;
+  };
   useFocusEffect(
     useCallback(() => {
       var unsubscribe;
@@ -74,9 +87,13 @@ const MyListScreen = () => {
     });
   }, []);
   const getDist = (item) => {
-    if (item.location) {
+    if (item.location && location) {
       var dis = getDistance(location, item.location);
-      return dis;
+      if (dis < 1000) {
+        return dis.toString() + "m";
+      } else {
+        return Math.floor(dis / 1000).toString() + "km";
+      }
     } else {
       return 0;
     }
@@ -121,7 +138,7 @@ const MyListScreen = () => {
                 >
                   <ImageBackground
                     style={styles.image}
-                    source={{ uri: item.data().uri }}
+                    source={{ uri: checkUri(item.data().uri) }}
                   >
                     <TouchableOpacity
                       onPress={() => {

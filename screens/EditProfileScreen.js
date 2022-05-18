@@ -23,8 +23,12 @@ const EditProfileScreen = () => {
   );
   const [isUploading, setIsUploading] = useState(false);
   const [pickedImagePath, setPickedImagePath] = useState(null);
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
+  const [firstName, setFirstName] = useState(
+    auth.currentUser.displayName?.split(" ").slice(0, -1).join(" ")
+  );
+  const [lastName, setLastName] = useState(
+    auth.currentUser.displayName?.split(" ").slice(-1).join(" ")
+  );
   const [distance, setDistance] = useState(50);
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -70,7 +74,6 @@ const EditProfileScreen = () => {
 
   useEffect(() => {
     getDistance();
-    console.log(auth.currentUser);
   }, []);
 
   const openCamera = async () => {
@@ -92,6 +95,7 @@ const EditProfileScreen = () => {
   };
   const submit = async () => {
     const fullName = firstName.concat(" ", lastName);
+    let isError = false;
 
     storeDistance();
     if (pickedImagePath) {
@@ -115,36 +119,61 @@ const EditProfileScreen = () => {
               photoURL: url,
               phoneNumber: phone != null ? phone : auth.currentUser.phoneNumber,
             })
-            .then(() => {
-              alert("Success!");
-            })
+
             .catch(() => {
-              alert("Error updating profile.");
+              isError = true;
             });
         })
         .catch((error) => {
-          alert("Error updating profile.");
+          isError = true;
         });
     } else {
+      console.log(fullName);
       auth.currentUser
         .updateProfile({
           displayName:
             fullName != null ? fullName : auth.currentUser.displayName,
           photoURL: auth.currentUser.photoURL,
-          phoneNumber: phone != null ? phone : auth.currentUser.phoneNumber,
+          phoneNumber: "+45",
         })
-        .then(() => {
-          alert("Success!");
-        })
-        .catch(() => {
-          alert("Error updating profile.");
+        .catch((err) => {
+          isError = true;
+          console.log(err);
         });
     }
-    if (email != null)
-      auth.currentUser.updateEmail(email).then(() => {
-        alert("Success!");
-      });
+    console.log(phone);
+
+    if (email != null) {
+      try {
+        auth.currentUser
+          .updateEmail(email.toString().trim())
+          .then(() => {
+            console.log("Email upodates");
+          })
+          .catch((err) => {
+            isError = true;
+            if (
+              err ==
+              "Error: This operation is sensitive and requires recent authentication. Log in again before retrying this request."
+            ) {
+              console.log(
+                "Log out and log in back to the application to change your email."
+              );
+              alert(
+                "Log out and log in back to the application to change your email."
+              );
+            }
+          });
+      } catch (err) {
+        isError = true;
+        alert(err);
+      }
+    }
+    if (!isError) {
+      alert("Success");
+    }
   };
+
   const editPreference = () => {
     navigation.navigate("EditPreferencesScreen", { uid: auth.currentUser.uid });
   };
@@ -234,26 +263,10 @@ const EditProfileScreen = () => {
           >
             {!!auth.currentUser.displayName
               ? auth.currentUser.displayName.split(" ").slice(-1).join(" ")
-              : "Your Name"}
+              : "Your Last Name"}
           </TextInput>
         </View>
-        <View style={styles.action}>
-          <TextInput
-            placeholder="Enter Your Phone Number"
-            onChangeText={(text) => setPhone(text)}
-            placeholderTextColor="#666666"
-            keyboardType="number-pad"
-            autoCorrect={false}
-            style={[
-              styles.textInput,
-              {
-                color: "black",
-              },
-            ]}
-          >
-            {auth.currentUser.phone}
-          </TextInput>
-        </View>
+
         <View style={styles.action}>
           <TextInput
             placeholder="Email"
