@@ -149,7 +149,11 @@ export function PlaceList(props) {
   };
   if (filtered)
     return (
-      <View style={styles.container}>
+      <View
+        style={
+          placeList.length === 1 ? styles.containerSingle : styles.container
+        }
+      >
         <FlatList
           data={placeList}
           keyExtractor={(item, index) => {
@@ -247,6 +251,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     marginLeft: 50,
+  },
+  containerSingle: {
+    flex: 1,
+    alignItems: "center",
+    marginLeft: 30,
   },
   row: {
     flex: 1,

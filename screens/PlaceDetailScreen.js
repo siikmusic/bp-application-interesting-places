@@ -8,7 +8,9 @@ import {
   Dimensions,
   SafeAreaView,
   ScrollView,
+  Button,
 } from "react-native";
+import * as Linking from "expo-linking";
 
 import { useNavigation } from "@react-navigation/core";
 
@@ -19,6 +21,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import MapView, { Marker } from "react-native-maps";
+import { Feather } from "@expo/vector-icons";
 
 const PlaceDetailScreen = (props) => {
   const [loaded] = useFonts({
@@ -26,11 +29,26 @@ const PlaceDetailScreen = (props) => {
     MontserratBold: require("../assets/fonts/Montserrat-SemiBold.ttf"),
   });
   const navigation = useNavigation();
+  const myPlace = props.route.params.place;
 
   const navigateHome = () => {
     navigation.goBack();
   };
-  const myPlace = props.route.params.place;
+
+  const redirect = () => {
+    const scheme = Platform.select({
+      ios: "maps:0,0?q=",
+      android: "geo:0,0?q=",
+    });
+    const latLng = `${myPlace.location.latitude},${myPlace.location.longitude}`;
+    const label = "Custom Label";
+    const url = Platform.select({
+      ios: `${scheme}${label}@${latLng}`,
+      android: `${scheme}${latLng}(${label})`,
+    });
+    Linking.openURL(url);
+    console.log(url);
+  };
   const distance = props.route.params.loc;
   const user = props.route.params.user;
   const mapRegion = {
@@ -107,48 +125,56 @@ const PlaceDetailScreen = (props) => {
         </ImageBackground>
       </View>
       <ScrollView style={styles.footer}>
-        <View>
-          <View style={{ flexDirection: "row" }}>
-            <Text style={styles.heading1}>About</Text>
-            <View style={{ marginLeft: "auto" }}>
-              <TouchableOpacity onPress={() => {}}></TouchableOpacity>
-            </View>
+        <View style={{ flexDirection: "row" }}>
+          <Text style={styles.heading1}>About</Text>
+          <View style={{ marginLeft: "auto" }}>
+            <TouchableOpacity onPress={() => {}}></TouchableOpacity>
           </View>
+        </View>
+        <View
+          style={{
+            height: 2,
+            width: "100%",
+            backgroundColor: "#555",
+            marginBottom: 10,
+            marginTop: -10,
+          }}
+        />
+        <Text style={styles.heading2}>{myPlace.info}</Text>
+        <View style={{ maxWidth: "100%" }}>
+          <Text style={styles.heading1}>Location</Text>
           <View
             style={{
               height: 2,
-              width: "100%",
               backgroundColor: "#555",
-              marginBottom: 10,
+              marginBottom: 20,
               marginTop: -10,
             }}
           />
-          <Text style={styles.heading2}>{myPlace.info}</Text>
-          <View style={{ maxWidth: "100%" }}>
-            <Text style={styles.heading1}>Location</Text>
-            <View
-              style={{
-                height: 2,
-                backgroundColor: "#555",
-                marginBottom: 20,
-                marginTop: -10,
-              }}
+        </View>
+
+        <View style={{ flex: 1, alignItems: "center" }}>
+          <MapView
+            initialRegion={mapRegion}
+            center={mapRegion}
+            style={styles.map}
+            zoomControlEnabled={true}
+            fullscreenControl={true}
+            showsUserLocation={true}
+            loadingIndicatorColor="#666666"
+            loadingBackgroundColor="#eeeeee"
+          >
+            <Marker coordinate={mapRegion} />
+          </MapView>
+          <TouchableOpacity style={styles.button1} onPress={redirect}>
+            <Feather
+              style={{ margin: 2 }}
+              name="navigation"
+              size={20}
+              color="#555"
             />
-          </View>
-          <View style={{ flex: 1, alignItems: "center" }}>
-            <MapView
-              initialRegion={mapRegion}
-              center={mapRegion}
-              style={styles.map}
-              zoomControlEnabled={true}
-              fullscreenControl={true}
-              showsUserLocation={true}
-              loadingIndicatorColor="#666666"
-              loadingBackgroundColor="#eeeeee"
-            >
-              <Marker coordinate={mapRegion} />
-            </MapView>
-          </View>
+            <Text>Navigate</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -171,13 +197,14 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 30,
     paddingHorizontal: 30,
     paddingVertical: 20,
-    bottom: 65,
+    bottom: 90,
+    paddingBottom: 50,
     backgroundColor: "#fff",
   },
   map: {
     width: 300,
     height: 300,
-    marginBottom: 80,
+    marginBottom: 10,
   },
   containerTopBar: {
     alignSelf: "stretch",
@@ -211,10 +238,14 @@ const styles = StyleSheet.create({
     marginTop: 40,
   },
   button1: {
-    backgroundColor: "#29c5F6",
-    width: "100%",
-    padding: 15,
-    marginBottom: 10,
+    alignSelf: "flex-end",
+    backgroundColor: "#eeeeee",
+    width: "30%",
+    alignItems: "center",
+    flexDirection: "row",
+    alignSelf: "center",
+    padding: 5,
+    marginBottom: 30,
     borderRadius: 8,
   },
   button2: {
@@ -298,7 +329,7 @@ const styles = StyleSheet.create({
   placeIcon: {
     alignItems: "flex-start",
     justifyContent: "center",
-    marginTop: 180,
+    marginTop: 160,
     marginLeft: 15,
   },
   bottomView: {

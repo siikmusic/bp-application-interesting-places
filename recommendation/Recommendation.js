@@ -54,12 +54,8 @@ export const getSimilarPlaces = (place, similarity, userPreference, data) => {
       if (userPreference[1] == data[i].category) placeMatrix[i] *= 2.5;
       if (userPreference[2] == data[i].category) placeMatrix[i] *= 2;
     }
-    if (filterById(data, place).category == data[i].category) {
-      placeMatrix[i] *= 3;
-    } else {
-      placeMatrix[i] *= 0.2;
-    }
-    if (parseFloat(placeMatrix[i]) > 0.2)
+
+    if (parseFloat(placeMatrix[i]) > 0.1)
       map.set(matrix.identifiers[i], placeMatrix[i]);
   }
   const sortedSimilarPlaces = new Map(

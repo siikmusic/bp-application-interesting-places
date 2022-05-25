@@ -425,17 +425,20 @@ const HomeScreen = () => {
                       <View style={{ marginLeft: 50, marginBottom: 10 }}>
                         <Text style={styles.header}>{item.category}</Text>
                       </View>
-                      <PlaceList
-                        sortedCategories={sortedCategories}
-                        user={currentUser}
-                        location={location}
-                        likedPlace={likedPlaceList}
-                        distanceUpdate={distanceUpdated}
-                        refreshing={refreshing}
-                        distance={distance}
-                        places={item.places}
-                        category={item.category}
-                      />
+                      <View style={styles.container}>
+                        <PlaceList
+                          sortedCategories={sortedCategories}
+                          user={currentUser}
+                          location={location}
+                          likedPlace={likedPlaceList}
+                          distanceUpdate={distanceUpdated}
+                          refreshing={refreshing}
+                          distance={distance}
+                          places={item.places}
+                          category={item.category}
+                        />
+                      </View>
+
                       <FlatListItemSeparator />
                     </>
                   ) : (

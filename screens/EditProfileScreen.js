@@ -128,7 +128,6 @@ const EditProfileScreen = () => {
           isError = true;
         });
     } else {
-      console.log(fullName);
       auth.currentUser
         .updateProfile({
           displayName:
@@ -200,6 +199,7 @@ const EditProfileScreen = () => {
       <View style={styles.containerTopBar}>
         <TouchableOpacity
           onPress={() => {
+            storeDistance();
             navigation.goBack();
           }}
         >

@@ -115,7 +115,7 @@ const FAQScreen = () => {
           <List.Item
             descriptionNumberOfLines={5}
             title="Account->Settings"
-            description="Go to Account->Settings and change your account information including your name, phone number and profile picture."
+            description="Go to Account->Settings and change your account information including your name, preferences and profile picture."
           />
         </List.Accordion>
         <List.Accordion

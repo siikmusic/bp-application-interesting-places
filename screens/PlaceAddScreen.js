@@ -19,6 +19,8 @@ import { useFonts } from "expo-font";
 import { Ionicons } from "@expo/vector-icons";
 import categories from "../data/categories.json";
 import { ActivityIndicator, Colors } from "react-native-paper";
+import Constants from "expo-constants";
+import { cos } from "react-native-reanimated";
 
 const PlaceAddScreen = ({ route }) => {
   const geofire = require("geofire-common");
@@ -163,6 +165,8 @@ const PlaceAddScreen = ({ route }) => {
 
   return (
     <View style={styles.container}>
+      <View style={styles.statusBar} />
+
       <View style={styles.containerTopBar}>
         <View style={styles.shadow}>
           <TouchableOpacity onPress={navigateHome}>
@@ -186,16 +190,21 @@ const PlaceAddScreen = ({ route }) => {
           style={styles.input}
         />
       </View>
+
       <View style={styles.inputContainer}>
         <Text style={styles.buttonOutlineTextBlueNoCenter}>Description</Text>
         <TextInput
-          placeholder="    Enter place description"
+          placeholder="Enter place description"
           onChangeText={(text) => setInfo(text)}
           value={info}
           multiline={true}
-          style={styles.textInput}
+          style={styles.input}
         />
       </View>
+      <Text style={styles.buttonOutlineTextBlueNoCenter2}>
+        Pick the place on the map
+      </Text>
+
       <View>
         <MapView
           initialRegion={mapRegion}
@@ -219,13 +228,22 @@ const PlaceAddScreen = ({ route }) => {
           />
         </MapView>
       </View>
-      <Picker
-        selectedValue={selectedValue}
-        style={{ height: 50, width: 150 }}
-        onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}
-      >
-        {PickerItems}
-      </Picker>
+      <View style={styles.background}>
+        <View style={styles.alignCenter}>
+          <Text style={styles.buttonOutlineTextBlueNoCenter2}>
+            Pick a category
+          </Text>
+        </View>
+
+        <Picker
+          selectedValue={selectedValue}
+          style={{ height: 50, width: 200 }}
+          onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}
+        >
+          {PickerItems}
+        </Picker>
+      </View>
+
       <View style={styles.buttonContainer}>
         <TouchableOpacity onPress={showImagePicker} style={styles.button1}>
           <Text style={styles.buttonOutlineTextWhite}>Select an image</Text>
@@ -256,6 +274,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "white",
   },
+  alignCenter: {
+    alignItems: "center",
+  },
+  background: {
+    marginTop: 5,
+    backgroundColor: "#eeeeee",
+
+    borderRadius: 20,
+  },
   topBarText: {
     fontFamily: "MontserratRegular",
     marginTop: 2,
@@ -265,7 +292,7 @@ const styles = StyleSheet.create({
     width: 250,
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 40,
+    marginTop: 5,
   },
   icon: {
     color: "#29c5F6",
@@ -282,6 +309,12 @@ const styles = StyleSheet.create({
   buttonOutlineTextBlueNoCenter: {
     fontWeight: "bold",
     color: "grey",
+  },
+  buttonOutlineTextBlueNoCenter2: {
+    fontWeight: "bold",
+    color: "grey",
+    marginTop: 5,
+    marginBottom: 10,
   },
   button1: {
     backgroundColor: "#29c5F6",
@@ -301,6 +334,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "grey",
   },
+  statusBar: {
+    backgroundColor: "#C2185B",
+    height: Constants.statusBarHeight,
+  },
   heading3: {
     marginBottom: "5%",
     fontSize: 28,
@@ -313,7 +350,6 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   input: {
-    paddingHorizontal: 15,
     paddingVertical: 5,
     borderRadius: 10,
   },

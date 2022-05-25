@@ -15,18 +15,29 @@ const ProfileScreen = () => {
     MontserratBold: require("../assets/fonts/Montserrat-SemiBold.ttf"),
   });
   const [user, setUser] = useState(auth.currentUser);
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [avatar, setAvatar] = useState("");
+
   const navigation = useNavigation();
   useFocusEffect(
     useCallback(() => {
+      auth.currentUser.reload();
       setUser(auth.currentUser);
       var unsubscribe;
       auth.onAuthStateChanged((user) => {
         unsubscribe = setUser(user);
       });
       console.log(user);
+      setUsername(user.displayName);
+      setEmail(user.email);
+      setAvatar(user.photoURL);
       return () => unsubscribe;
     }, [])
   );
+  useEffect(() => {
+    console.log("new User");
+  }, [user]);
   // Sign out of application
   const handleSignOut = () => {
     auth
@@ -45,41 +56,9 @@ const ProfileScreen = () => {
   const handleFAQ = () => {
     navigation.navigate("FAQScreen");
   };
-  const DisplayName = () => {
-    if (user.displayName) {
-      return (
-        <Title
-          style={[
-            styles.title,
-            {
-              marginTop: 15,
-              marginBottom: 5,
-            },
-          ]}
-        >
-          {user.displayName}
-        </Title>
-      );
-    } else {
-      return (
-        <Title
-          style={[
-            styles.title,
-            {
-              marginTop: 15,
-              marginBottom: 5,
-            },
-          ]}
-        >
-          Your Name
-        </Title>
-      );
-    }
-  };
 
   const DisplayAvatar = () => {
-    var uri = user.photoURL;
-    console.log(uri);
+    var uri = avatar;
     if (uri) {
       return (
         <Avatar.Image source={{ uri: uri }} size={100} style={styles.avatar} />
@@ -126,9 +105,44 @@ const ProfileScreen = () => {
               marginTop: 15,
             }}
           >
-            <DisplayAvatar />
+            {avatar ? (
+              <Avatar.Image
+                source={{ uri: uri }}
+                size={100}
+                style={styles.avatar}
+              />
+            ) : (
+              <Avatar.Image
+                source={require("../assets/placeholder-image.png")}
+                style={styles.avatar}
+              ></Avatar.Image>
+            )}
             <View style={{ alignItems: "center", justifyContent: "center" }}>
-              <DisplayName />
+              {username ? (
+                <Title
+                  style={[
+                    styles.title,
+                    {
+                      marginTop: 15,
+                      marginBottom: 5,
+                    },
+                  ]}
+                >
+                  {username}
+                </Title>
+              ) : (
+                <Title
+                  style={[
+                    styles.title,
+                    {
+                      marginTop: 15,
+                      marginBottom: 5,
+                    },
+                  ]}
+                >
+                  Your Name
+                </Title>
+              )}
             </View>
           </View>
         </View>
@@ -144,7 +158,7 @@ const ProfileScreen = () => {
                 marginTop: 2,
               }}
             >
-              test@gmail.com
+              {email}
             </Text>
           </View>
         </View>
