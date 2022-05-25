@@ -1,12 +1,21 @@
 import React, { useEffect } from "react";
-import { StyleSheet, Text, View, BackHandler } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  BackHandler,
+  TouchableOpacity,
+} from "react-native";
 import { useNavigation } from "@react-navigation/core";
 import { VerifyPlaceList } from "../components/VerifyPlaceList";
 import Constants from "expo-constants";
+import { Ionicons } from "@expo/vector-icons";
 
 const VerifyPlacesScreen = () => {
   const navigation = useNavigation();
-
+  const navigateHome = () => {
+    navigation.replace("TabNavigator");
+  };
   useEffect(() => {
     const backAction = () => {
       navigation.replace("TabNavigator");
@@ -25,14 +34,21 @@ const VerifyPlacesScreen = () => {
     <View style={styles.container}>
       <View style={styles.statusBar} />
       <View style={styles.containerTopBar}>
-        <Text></Text>
-        <Text></Text>
-      </View>
+        <View style={styles.shadow}>
+          <TouchableOpacity onPress={navigateHome}>
+            <View style={{ flexDirection: "row" }}>
+              <Ionicons name="chevron-back" size={24} style={styles.icon} />
+              <Text style={styles.topBarText}>Back</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
 
-      <View style={styles.container}>
-        <VerifyPlaceList />
-        <View style={styles.buttonContainer}></View>
+        <View style={{ justifyContent: "center", marginRight: 50 }}>
+          <Text style={styles.heading1}> Verify Places</Text>
+        </View>
+        <View></View>
       </View>
+      <VerifyPlaceList />
     </View>
   );
 };
@@ -117,5 +133,17 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     color: "black",
     fontFamily: "MontserratRegular",
+  },
+  heading1: {
+    marginBottom: "5%",
+
+    color: "black",
+    fontSize: 25,
+  },
+  topBarText: {
+    fontFamily: "MontserratRegular",
+    marginTop: 2,
+    color: "black",
+    marginLeft: -10,
   },
 });

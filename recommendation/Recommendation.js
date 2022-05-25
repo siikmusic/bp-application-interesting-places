@@ -45,23 +45,25 @@ export const getSimilarPlaces = (place, similarity, userPreference, data) => {
   const index = matrix.identifiers.indexOf(place);
   var placeMatrix = matrix.matrix[index];
   var map = new Map();
+  if (placeMatrix) {
+    for (var i = 0; i < placeMatrix.length; i++) {
+      // Check if place category is in any of his favorite categories
+      // and if yes, multiply the score of the place
+      if (userPreference.includes(data[i]?.category)) {
+        if (userPreference[0] == data[i].category) placeMatrix[i] *= 3;
+        if (userPreference[1] == data[i].category) placeMatrix[i] *= 2.5;
+        if (userPreference[2] == data[i].category) placeMatrix[i] *= 2;
+      }
 
-  for (var i = 0; i < placeMatrix.length; i++) {
-    // Check if place category is in any of his favorite categories
-    // and if yes, multiply the score of the place
-    if (userPreference.includes(data[i].category)) {
-      if (userPreference[0] == data[i].category) placeMatrix[i] *= 3;
-      if (userPreference[1] == data[i].category) placeMatrix[i] *= 2.5;
-      if (userPreference[2] == data[i].category) placeMatrix[i] *= 2;
+      if (parseFloat(placeMatrix[i]) > 0.1)
+        map.set(matrix.identifiers[i], placeMatrix[i]);
     }
-
-    if (parseFloat(placeMatrix[i]) > 0.1)
-      map.set(matrix.identifiers[i], placeMatrix[i]);
+    const sortedSimilarPlaces = new Map(
+      [...map.entries()].sort((a, b) => b[1] - a[1])
+    );
+    return sortedSimilarPlaces;
   }
-  const sortedSimilarPlaces = new Map(
-    [...map.entries()].sort((a, b) => b[1] - a[1])
-  );
-  return sortedSimilarPlaces;
+  return new Map();
 };
 
 // Returns similar places to user preference

@@ -7,6 +7,7 @@ import {
   Image,
   ScrollView,
   TouchableOpacity,
+  Dimensions,
 } from "react-native";
 import {
   getUnVerifiedPlaces,
@@ -15,6 +16,7 @@ import {
 } from "../api/PlacesApi";
 import { AntDesign } from "@expo/vector-icons";
 import "firebase/firestore";
+import { Avatar, Button, Card, Title, Paragraph } from "react-native-paper";
 
 export class VerifyPlaceList extends Component {
   state = {
@@ -25,6 +27,7 @@ export class VerifyPlaceList extends Component {
   };
 
   onPlacesRecieved = (placeList) => {
+    console.log(placeList);
     this.setState((prevState) => ({
       placeList: (prevState.placeList = placeList),
     }));
@@ -45,8 +48,12 @@ export class VerifyPlaceList extends Component {
     return str;
   }
   onPlaceDeleted = () => {
-
     alert("Place deleted");
+    var newPlaceList = [...this.state.placeList];
+    newPlaceList.splice(this.state.selectedIndex, 1);
+    this.setState((prevState) => ({
+      placeList: (prevState.placeList = newPlaceList),
+    }));
   };
   onPlaceValidated = () => {
     var newPlaceList = [...this.state.placeList];
@@ -60,6 +67,7 @@ export class VerifyPlaceList extends Component {
     validatePlace(place, this.onPlaceValidated);
   };
   componentDidMount() {
+    console.log("mount");
     getUnVerifiedPlaces(this.onPlacesRecieved);
   }
   renderPlace(item) {
@@ -69,10 +77,24 @@ export class VerifyPlaceList extends Component {
       </View>
     );
   }
+  checkUri(uri) {
+    if (uri.includes("PhotoService")) {
+      const photo_reference = uri.substring(
+        uri.indexOf("GetPhoto?") + 9,
+        uri.lastIndexOf("&callback")
+      );
+      const final = photo_reference.replace("1sAap", "Aap");
+      uri =
+        "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=" +
+        final +
+        "&key=AIzaSyCNYU8Q6lggN_ZPXxuaxuXuB-aq2XZJk04";
+    }
+    return uri;
+  }
   render() {
     return (
       <View style={styles.container}>
-        {this.state.placeList ? (
+        {this.state.placeList.length > 0 ? (
           <FlatList
             data={this.state.placeList}
             extraData={this.state.refreshFlatlist}
@@ -81,46 +103,40 @@ export class VerifyPlaceList extends Component {
             }}
             ItemSeparatorComponent={this.FlatListItemSeparator}
             renderItem={({ item }) => (
-              <ScrollView contentContainerStyle={styles.contentContainer}>
-                <View style={styles.place}>
-                  <Image style={styles.image} source={{ uri: item.data().uri }} />
-                  <View style={styles.margin}>
-                    <Text style={styles.heading1}>Name: {item.data().name}</Text>
-                    <Text style={styles.heading2}>Info: {item.data().info}</Text>
+              <Card style={{ width: Dimensions.get("window").width }}>
+                <Card.Content>
+                  <Title>{item.data().name}</Title>
+                  <Paragraph>{item.data().info} </Paragraph>
+                </Card.Content>
+                <Card.Cover source={{ uri: this.checkUri(item.data().uri) }} />
+                <Card.Actions>
+                  <View style={styles.categoryContainer}>
+                    <Text style={{ padding: 5 }}>
+                      {this.Capitalize(item.data().category)}
+                    </Text>
                   </View>
-                  <View
-                    style={{ flexDirection: "row", alignItems: "flex-end" }}
+                  <TouchableOpacity
+                    onPress={() => {
+                      deletePlace(item, this.onPlaceDeleted);
+                    }}
+                    style={{ marginLeft: "auto" }}
                   >
-                    <View style={styles.categoryContainer}>
-                      <Text style={{ padding: 5 }}>
-                        {this.Capitalize(item.data().category)}
-                      </Text>
-                    </View>
-                    <TouchableOpacity
-                      onPress={() => {
-
-                        deletePlace(item, this.onPlaceDeleted);
-                      }}
-                      style={{ marginLeft: "auto" }}
-                    >
-                      <AntDesign name="closecircle" size={30} color="#FF6962" />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => {
-
-                        this.setVerified(item);
-                      }}
-                      style={{ marginLeft: 5, marginRight: 5 }}
-                    >
-                      <AntDesign name="checkcircle" size={30} color="#77DD76" />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </ScrollView>
+                    <AntDesign name="closecircle" size={30} color="#FF6962" />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => {
+                      this.setVerified(item);
+                    }}
+                    style={{ marginLeft: 5, marginRight: 5 }}
+                  >
+                    <AntDesign name="checkcircle" size={30} color="#77DD76" />
+                  </TouchableOpacity>
+                </Card.Actions>
+              </Card>
             )}
           />
         ) : (
-          <Text style={styles.heading1}>No Places</Text>
+          <Text style={styles.heading1}>No places to verify</Text>
         )}
       </View>
     );
@@ -128,9 +144,11 @@ export class VerifyPlaceList extends Component {
 }
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "white",
+    width: "100%",
   },
   categoryContainer: {
     marginTop: "2%",
@@ -216,6 +234,7 @@ const styles = StyleSheet.create({
   },
   place: {
     marginTop: "10%",
+    backgroundColor: "white",
   },
   image: {
     marginLeft: "1%",

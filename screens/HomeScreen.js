@@ -211,7 +211,7 @@ const HomeScreen = () => {
       .concat(estimatedLikedPlaces)
       .sort(() => Math.random() - 0.5);
     var isInit = true;
-
+    console.log(newPlaceList);
     // get recommended places
     var recommendedPlaces = getPreference(
       userProfile,
