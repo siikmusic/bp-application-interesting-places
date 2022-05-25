@@ -61,7 +61,11 @@ const ProfileScreen = () => {
     var uri = avatar;
     if (uri) {
       return (
-        <Avatar.Image source={{ uri: uri }} size={100} style={styles.avatar} />
+        <Avatar.Image
+          source={{ uri: avatar }}
+          size={100}
+          style={styles.avatar}
+        />
       );
     } else {
       return (
@@ -107,7 +111,7 @@ const ProfileScreen = () => {
           >
             {avatar ? (
               <Avatar.Image
-                source={{ uri: uri }}
+                source={{ uri: avatar }}
                 size={100}
                 style={styles.avatar}
               />

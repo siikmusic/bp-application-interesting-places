@@ -169,6 +169,7 @@ const EditProfileScreen = () => {
       }
     }
     if (!isError) {
+      auth.currentUser.reload();
       alert("Success");
     }
   };
@@ -224,8 +225,8 @@ const EditProfileScreen = () => {
             <DisplayAvatar />
           </TouchableOpacity>
           <Text style={{ marginBottom: 10, fontSize: 24, fontWeight: "bold" }}>
-            {!!auth.currentUser.displayName
-              ? auth.currentUser.displayName
+            {!!auth.currentUser?.displayName
+              ? auth.currentUser?.displayName
               : "Your Name"}
           </Text>
         </View>
@@ -243,8 +244,8 @@ const EditProfileScreen = () => {
               },
             ]}
           >
-            {!!auth.currentUser.displayName
-              ? auth.currentUser.displayName.split(" ").slice(0, -1).join(" ")
+            {!!auth.currentUser?.displayName
+              ? auth.currentUser?.displayName.split(" ").slice(0, -1).join(" ")
               : "Your Name"}
           </TextInput>
         </View>
@@ -261,8 +262,8 @@ const EditProfileScreen = () => {
               },
             ]}
           >
-            {!!auth.currentUser.displayName
-              ? auth.currentUser.displayName.split(" ").slice(-1).join(" ")
+            {!!auth.currentUser?.displayName
+              ? auth.currentUser?.displayName.split(" ").slice(-1).join(" ")
               : "Your Last Name"}
           </TextInput>
         </View>

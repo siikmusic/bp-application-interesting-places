@@ -36,6 +36,7 @@ const PlaceAddScreen = ({ route }) => {
     longitudeDelta: 0.0922,
     latitudeDelta: 0.0421,
   });
+
   const [pin, setPin] = useState({
     latitude: route.params.location.latitude,
     longitude: route.params.location.longitude,
@@ -91,7 +92,7 @@ const PlaceAddScreen = ({ route }) => {
       category: "",
       geohash: "",
       numberOfLikes: 0,
-      isValidated: true,
+      isValidated: false,
     };
 
     if (pickedImagePath) {
@@ -176,11 +177,13 @@ const PlaceAddScreen = ({ route }) => {
             </View>
           </TouchableOpacity>
         </View>
+
         <View style={{ justifyContent: "center", marginRight: 50 }}>
           <Text style={styles.heading1}> Add Place</Text>
         </View>
         <View></View>
       </View>
+
       <View style={styles.inputContainer}>
         <Text style={styles.buttonOutlineTextBlueNoCenter}>Place name</Text>
         <TextInput
@@ -228,6 +231,7 @@ const PlaceAddScreen = ({ route }) => {
           />
         </MapView>
       </View>
+
       <View style={styles.background}>
         <View style={styles.alignCenter}>
           <Text style={styles.buttonOutlineTextBlueNoCenter2}>

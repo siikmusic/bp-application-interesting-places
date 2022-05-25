@@ -102,19 +102,22 @@ export function PlaceList(props) {
 
   const setCategoryVisited = async () => {
     if (props.category !== "Recommended" && props.category !== "Most Popular") {
-      var index = sortedCategories.findIndex(
-        (x) => x.category === props.category
-      );
-      var tmp = [...sortedCategories];
-      tmp[index].visitedCount = tmp[index].visitedCount + 1;
-      setSortedCategories(tmp);
-      try {
-        await AsyncStorage.setItem(
-          "@categories" + auth.currentUser.uid,
-          JSON.stringify(tmp)
-        );
-      } catch (e) {
-        console.log(e);
+      if (sortedCategories[0].category) {
+        var index = sortedCategories.findIndex((x) => {
+          return x.category === props.category;
+        });
+        //console.log(index, sortedCategories, props.category);
+        var tmp = [...sortedCategories];
+        tmp[index].visitedCount = tmp[index].visitedCount + 1;
+        setSortedCategories(tmp);
+        try {
+          await AsyncStorage.setItem(
+            "@categories" + auth.currentUser.uid,
+            JSON.stringify(tmp)
+          );
+        } catch (e) {
+          console.log(e);
+        }
       }
     }
   };

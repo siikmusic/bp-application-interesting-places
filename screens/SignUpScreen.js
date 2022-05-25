@@ -18,6 +18,7 @@ import { useFonts } from "expo-font";
 import categories from "../data/categories.json";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Feather } from "@expo/vector-icons";
+import { ActivityIndicator } from "react-native-paper";
 
 const LoginScreen = () => {
   const [email, setEmail] = useState("");
@@ -29,7 +30,7 @@ const LoginScreen = () => {
     MontserratRegular: require("../assets/fonts/Montserrat-Regular.ttf"),
     MontserratBold: require("../assets/fonts/Montserrat-SemiBold.ttf"),
   });
-
+  const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
   const storeCategoryObject = async () => {
     try {
@@ -53,6 +54,7 @@ const LoginScreen = () => {
   };
   const onUserAdded = () => {
     storeCategoryObject();
+    setLoading(false);
     navigation.replace("Preferences");
   };
   useEffect(() => {
@@ -69,6 +71,7 @@ const LoginScreen = () => {
             isAdmin: false,
             likedPlaces: [],
           };
+          setLoading(true);
           addUser(userRef, onUserAdded);
         })
         .catch((error) => {
@@ -200,6 +203,7 @@ const LoginScreen = () => {
             </Text>
           </TouchableOpacity>
         </View>
+        {loading ? <ActivityIndicator /> : <></>}
       </View>
     </KeyboardAvoidingView>
   );
