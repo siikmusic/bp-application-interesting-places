@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/core";
 import { storage } from "../firebase";
-import { addPlace } from "../api/PlacesApi";
+import { addPlace, addPlaceFromData } from "../api/PlacesApi";
 import * as ImagePicker from "expo-image-picker";
 import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
@@ -21,7 +21,7 @@ import categories from "../data/categories.json";
 import { ActivityIndicator, Colors } from "react-native-paper";
 import Constants from "expo-constants";
 import { cos } from "react-native-reanimated";
-
+import data from "./data.json";
 const PlaceAddScreen = ({ route }) => {
   const geofire = require("geofire-common");
   const navigation = useNavigation();
@@ -63,7 +63,11 @@ const PlaceAddScreen = ({ route }) => {
       setPickedImagePath(result.uri);
     }
   };
-
+  const addPlaces = () => {
+    data.forEach((place) => {
+      addPlaceFromData(place, onPlaceAdded);
+    });
+  };
   const openCamera = async () => {
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
 

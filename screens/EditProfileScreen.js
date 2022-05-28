@@ -94,7 +94,10 @@ const EditProfileScreen = () => {
     setDistance(distance);
   };
   const submit = async () => {
-    const fullName = firstName.concat(" ", lastName);
+    var fullName = "";
+    if (firstName) {
+      fullName = firstName.concat(" ", lastName);
+    }
     let isError = false;
 
     storeDistance();
@@ -140,7 +143,6 @@ const EditProfileScreen = () => {
           console.log(err);
         });
     }
-    console.log(phone);
 
     if (email != null) {
       try {
@@ -246,7 +248,7 @@ const EditProfileScreen = () => {
           >
             {!!auth.currentUser?.displayName
               ? auth.currentUser?.displayName.split(" ").slice(0, -1).join(" ")
-              : "Your Name"}
+              : ""}
           </TextInput>
         </View>
         <View style={styles.action}>
@@ -264,7 +266,7 @@ const EditProfileScreen = () => {
           >
             {!!auth.currentUser?.displayName
               ? auth.currentUser?.displayName.split(" ").slice(-1).join(" ")
-              : "Your Last Name"}
+              : ""}
           </TextInput>
         </View>
 

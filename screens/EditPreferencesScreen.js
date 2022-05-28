@@ -13,13 +13,13 @@ import data from "../data/preferences.json";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { updateInitForm } from "../api/PlacesApi";
 import { getInitForm } from "../api/PlacesApi";
+import { Dimensions } from "react-native";
 const InitPreferencesScreen = (props) => {
   const navigation = useNavigation();
   const [preferences, setPreferences] = useState([]);
   const [addedPreferences, setAddedPreferences] = useState();
   const handleContinue = () => {
     const preferenceString = addedPreferences.join(" ");
-    console.log(preferenceString);
     updateInitForm(preferenceString);
     navigation.goBack();
   };
@@ -36,18 +36,15 @@ const InitPreferencesScreen = (props) => {
 
     var addedPreference = preferences[index];
 
-    console.log(pref[index]);
     pref.splice(index, 1);
     if (index !== -1) {
       setPreferences(pref);
       addedPref.push(addedPreference);
       setAddedPreferences(addedPref);
-      console.log(addedPreferences);
     }
   };
   const onInitFormReceived = (initForm) => {
     const form = initForm.split(" ");
-    console.log(form);
     var tmp = data.preferences;
     const newData = tmp.filter((dat) => !form.includes(dat));
     setPreferences(newData);
@@ -169,8 +166,13 @@ const styles = StyleSheet.create({
     height: Constants.statusBarHeight,
   },
   buttonContainer: {
-    alignItems: "center",
-    marginTop: 40,
+    width: 300,
+
+    alignSelf: "center",
+    justifyContent: "center",
+    position: "absolute",
+    top: Dimensions.get("window").height - 150,
+    left: Dimensions.get("window").width / 2 - 125,
   },
   button1: {
     backgroundColor: "#29c5F6",

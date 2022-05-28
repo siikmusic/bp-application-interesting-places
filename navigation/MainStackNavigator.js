@@ -1,16 +1,11 @@
 import React from "react";
-import {
-  StyleSheet,
-  Text,
-  View,
-  Easing,
-} from "react-native";
-import {
-  createNativeStackNavigator,
-  TransitionPresets,
-} from "@react-navigation/native-stack";
+import { StyleSheet, Text, View, Easing } from "react-native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { CardStyleInterpolators } from "@react-navigation/stack";
+import {
+  CardStyleInterpolators,
+  TransitionPresets,
+} from "@react-navigation/stack";
 
 import {
   createAppContainer,
@@ -57,11 +52,11 @@ const HomeStack = () => {
         component={PlaceDetailScreen}
         options={{ headerShown: false }}
       />
-        <Stack.Screen
-          name="Preferences"
-          component={InitPreferencesScreen}
-          options={{ headerShown: false }}
-        />
+      <Stack.Screen
+        name="Preferences"
+        component={InitPreferencesScreen}
+        options={{ headerShown: false }}
+      />
     </Stack.Navigator>
   );
 };
@@ -112,13 +107,13 @@ const SettingStack = () => {
         name="SettingsScreen"
         component={SettingsScreen}
         options={{ headerShown: false }}
-      /> 
+      />
       <Stack.Screen
         name="FAQScreen"
         component={FAQScreen}
         options={{ headerShown: false }}
       />
-            <Stack.Screen
+      <Stack.Screen
         name="EditPreferencesScreen"
         component={EditPreferencesScreen}
         options={{ headerShown: false }}
@@ -175,6 +170,10 @@ const TabNavigator = () => {
         tabBarActiveTintColor: "#29c5F6",
         tabBarInactiveTintColor: "gray",
         tabBarShowLabel: false,
+        transitionSpec: {
+          open: config,
+          close: configClosing,
+        },
       })}
     >
       <Tab.Screen
@@ -196,6 +195,18 @@ const TabNavigator = () => {
     </Tab.Navigator>
   );
 };
+const configAnim = {
+  animation: "spring",
+  config: {
+    stiffness: 1000,
+    damping: 500,
+    mass: 3,
+    overshootClamping: true,
+    restDisplacementThreshold: 0.01,
+    restSpeedThreshold: 0.01,
+  },
+};
+
 const AppStack = () => {
   return (
     <NavigationContainer>
@@ -203,7 +214,7 @@ const AppStack = () => {
         screenOptions={{
           gestureEnabled: true,
           gestureDirection: "horizontal",
-          cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+          ...TransitionPresets.SlideFromRightIOS,
         }}
         headerMode="float"
       >

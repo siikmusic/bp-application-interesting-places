@@ -146,8 +146,6 @@ const HomeScreen = () => {
     setRefreshing(true);
   };
   const getRecommendation = () => {
-    console.time("recommend");
-
     var descriptions = [];
     var names = [];
     var estimatedLikedPlaces = [];
@@ -211,7 +209,6 @@ const HomeScreen = () => {
       .concat(estimatedLikedPlaces)
       .sort(() => Math.random() - 0.5);
     var isInit = true;
-    console.log(newPlaceList);
     // get recommended places
     var recommendedPlaces = getPreference(
       userProfile,
@@ -238,7 +235,6 @@ const HomeScreen = () => {
         }
       });
     });
-    console.timeEnd("recommend");
 
     return recommendedPlacesDocs;
   };
@@ -291,8 +287,6 @@ const HomeScreen = () => {
   }, [locationLoaded, distance]);
 
   useEffect(() => {
-    console.time(` init`);
-
     var placesByCategory = [];
     if (placeList.length > 0 && popularPlaces.length > 0) {
       if (recommendedPlaces.length > 0) {
@@ -333,7 +327,6 @@ const HomeScreen = () => {
         setRefreshing(false);
       }
     }
-    console.timeEnd(` init`);
   }, [recommendedPlaces]);
 
   const checkAdmin = () => {

@@ -35,19 +35,18 @@ const PlaceDetailScreen = (props) => {
     navigation.goBack();
   };
 
-  const redirect = () => {
+  const redirect = (name) => {
     const scheme = Platform.select({
       ios: "maps:0,0?q=",
       android: "geo:0,0?q=",
     });
     const latLng = `${myPlace.location.latitude},${myPlace.location.longitude}`;
-    const label = "Custom Label";
+    const label = name;
     const url = Platform.select({
       ios: `${scheme}${label}@${latLng}`,
       android: `${scheme}${latLng}(${label})`,
     });
     Linking.openURL(url);
-    console.log(url);
   };
   const distance = props.route.params.loc;
   const user = props.route.params.user;
@@ -65,11 +64,11 @@ const PlaceDetailScreen = (props) => {
       );
       const final = photo_reference.replace("1sAap", "Aap");
       uri =
-        "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=" +
+        "https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=" +
         final +
-        "&key=AIzaSyCNYU8Q6lggN_ZPXxuaxuXuB-aq2XZJk04";
-      console.log(uri);
+        "&key=AIzaSyBdrp2AnP452z_TncsrxwiBI07LrZ_LCL8";
     }
+
     return uri;
   };
   return (
@@ -166,7 +165,10 @@ const PlaceDetailScreen = (props) => {
           >
             <Marker coordinate={mapRegion} />
           </MapView>
-          <TouchableOpacity style={styles.button1} onPress={redirect}>
+          <TouchableOpacity
+            style={styles.button1}
+            onPress={() => redirect(myPlace.name)}
+          >
             <Feather
               style={{ margin: 2 }}
               name="navigation"

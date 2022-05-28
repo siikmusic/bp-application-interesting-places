@@ -28,16 +28,13 @@ const ProfileScreen = () => {
       auth.onAuthStateChanged((user) => {
         unsubscribe = setUser(user);
       });
-      console.log(user);
       setUsername(user.displayName);
       setEmail(user.email);
       setAvatar(user.photoURL);
       return () => unsubscribe;
     }, [])
   );
-  useEffect(() => {
-    console.log("new User");
-  }, [user]);
+
   // Sign out of application
   const handleSignOut = () => {
     auth

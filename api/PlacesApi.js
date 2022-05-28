@@ -49,7 +49,6 @@ export function addPlaceFromData(place, addComplete) {
       numberOfLikes: 0,
       isValidated: place.isValidated,
     })
-    .then((data) => addComplete(data))
     .catch((error) => console.log(error));
 }
 export function addUser(user, addComplete) {

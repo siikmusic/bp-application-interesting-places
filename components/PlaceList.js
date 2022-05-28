@@ -62,7 +62,7 @@ export function PlaceList(props) {
       if (props.category?.toString() === "Recommended") {
       } else if (props.category?.toString() === "Most Popular") {
       } else {
-        filtered.sort((a, b) => (getDist(a) >= getDist(b) ? 1 : -1));
+        filtered.sort((a, b) => (getDistM(a) >= getDistM(b) ? 1 : -1));
       }
       setPlaceList(filtered);
       setFiltered(true);
@@ -106,7 +106,6 @@ export function PlaceList(props) {
         var index = sortedCategories.findIndex((x) => {
           return x.category === props.category;
         });
-        //console.log(index, sortedCategories, props.category);
         var tmp = [...sortedCategories];
         tmp[index].visitedCount = tmp[index].visitedCount + 1;
         setSortedCategories(tmp);
@@ -148,6 +147,15 @@ export function PlaceList(props) {
       }
     } else {
       return 0;
+    }
+  };
+
+  const getDistM = (item) => {
+    if (item.location && location) {
+      var dis = getDistance(location, item.location);
+      return dis;
+    } else {
+      return 545000000;
     }
   };
   if (filtered)
@@ -253,6 +261,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
+    justifyContent: "center",
     marginLeft: 50,
   },
   containerSingle: {

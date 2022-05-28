@@ -19,7 +19,6 @@ const InitPreferencesScreen = () => {
   const [addedPreferences, setAddedPreferences] = useState([]);
   const handleContinue = () => {
     const preferenceString = addedPreferences.join(" ");
-    console.log(preferenceString);
     updateInitForm(preferenceString);
     navigation.replace("TabNavigator");
   };
@@ -36,13 +35,11 @@ const InitPreferencesScreen = () => {
 
     var addedPreference = preferences[index];
 
-    console.log(pref[index]);
     pref.splice(index, 1);
     if (index !== -1) {
       setPreferences(pref);
       addedPref.push(addedPreference);
       setAddedPreferences(addedPref);
-      console.log(addedPreferences);
     }
   };
   const handleRemove = (item) => {
