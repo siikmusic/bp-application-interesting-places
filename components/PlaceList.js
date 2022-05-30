@@ -6,6 +6,7 @@ import {
   StyleSheet,
   ImageBackground,
   TouchableOpacity,
+  Dimensions,
 } from "react-native";
 import { addLiked, deleteLikedPlace } from "../api/PlacesApi";
 import { getDistance } from "geolib";
@@ -120,6 +121,8 @@ export function PlaceList(props) {
       }
     }
   };
+
+  // api key removed for security reasons
   const checkUri = (uri) => {
     if (uri.includes("PhotoService")) {
       const photo_reference = uri.substring(
@@ -130,7 +133,7 @@ export function PlaceList(props) {
       uri =
         "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=" +
         final +
-        "&key=AIzaSyCNYU8Q6lggN_ZPXxuaxuXuB-aq2XZJk04";
+        "&key=API_KEY";
     }
     return uri;
   };
@@ -262,7 +265,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    marginLeft: 50,
+    marginLeft: Dimensions.get("screen").width / 10,
   },
   containerSingle: {
     flex: 1,

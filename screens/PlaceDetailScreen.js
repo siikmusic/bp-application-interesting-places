@@ -56,6 +56,8 @@ const PlaceDetailScreen = (props) => {
     longitudeDelta: 0.0922,
     latitudeDelta: 0.0421,
   };
+
+  // api key removed for security reasons
   const checkUri = (uri) => {
     if (uri.includes("PhotoService")) {
       const photo_reference = uri.substring(
@@ -66,9 +68,9 @@ const PlaceDetailScreen = (props) => {
       uri =
         "https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=" +
         final +
-        "&key=AIzaSyBdrp2AnP452z_TncsrxwiBI07LrZ_LCL8";
+        "&key=API_KEY";
+      console.log(final);
     }
-
     return uri;
   };
   return (

@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import {
   TextInput,
   KeyboardAvoidingView,
+  ScrollView,
+  SafeAreaView,
   StyleSheet,
   Text,
   View,
@@ -169,9 +171,8 @@ const PlaceAddScreen = ({ route }) => {
   }, []);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.statusBar} />
-
       <View style={styles.containerTopBar}>
         <View style={styles.shadow}>
           <TouchableOpacity onPress={navigateHome}>
@@ -187,89 +188,92 @@ const PlaceAddScreen = ({ route }) => {
         </View>
         <View></View>
       </View>
-
-      <View style={styles.inputContainer}>
-        <Text style={styles.buttonOutlineTextBlueNoCenter}>Place name</Text>
-        <TextInput
-          placeholder="Enter name of place"
-          onChangeText={(text) => setName(text)}
-          value={name}
-          style={styles.input}
-        />
-      </View>
-
-      <View style={styles.inputContainer}>
-        <Text style={styles.buttonOutlineTextBlueNoCenter}>Description</Text>
-        <TextInput
-          placeholder="Enter place description"
-          onChangeText={(text) => setInfo(text)}
-          value={info}
-          multiline={true}
-          style={styles.input}
-        />
-      </View>
-      <Text style={styles.buttonOutlineTextBlueNoCenter2}>
-        Pick the place on the map
-      </Text>
-
-      <View>
-        <MapView
-          initialRegion={mapRegion}
-          center={mapRegion}
-          style={styles.map}
-          zoomControlEnabled={true}
-          fullscreenControl={true}
-          showsUserLocation={true}
-          loadingIndicatorColor="#666666"
-          loadingBackgroundColor="#eeeeee"
-        >
-          <Marker
-            draggable
-            coordinate={pin}
-            onDragEnd={(e) => {
-              setPin({
-                latitude: e.nativeEvent.coordinate.latitude,
-                longitude: e.nativeEvent.coordinate.longitude,
-              });
-            }}
+      <ScrollView>
+        <View style={styles.inputContainer}>
+          <Text style={styles.buttonOutlineTextBlueNoCenter}>Place name</Text>
+          <TextInput
+            placeholder="Enter name of place"
+            onChangeText={(text) => setName(text)}
+            value={name}
+            style={styles.input}
           />
-        </MapView>
-      </View>
-
-      <View style={styles.background}>
-        <View style={styles.alignCenter}>
-          <Text style={styles.buttonOutlineTextBlueNoCenter2}>
-            Pick a category
-          </Text>
         </View>
 
-        <Picker
-          selectedValue={selectedValue}
-          style={{ height: 50, width: 200 }}
-          onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}
-        >
-          {PickerItems}
-        </Picker>
-      </View>
-
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity onPress={showImagePicker} style={styles.button1}>
-          <Text style={styles.buttonOutlineTextWhite}>Select an image</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={addNewPlace} style={styles.button1}>
-          <Text style={styles.buttonOutlineTextWhite}>Add Place</Text>
-        </TouchableOpacity>
-        {isUploading ? (
-          <ActivityIndicator
-            size={"large"}
-            animating={true}
-            color={Colors.blue800}
+        <View style={styles.inputContainer}>
+          <Text style={styles.buttonOutlineTextBlueNoCenter}>Description</Text>
+          <TextInput
+            placeholder="Enter place description"
+            onChangeText={(text) => setInfo(text)}
+            value={info}
+            multiline={true}
+            style={styles.input}
           />
-        ) : (
-          <></>
-        )}
-      </View>
-    </View>
+        </View>
+        <Text style={styles.buttonOutlineTextBlueNoCenter2}>
+          Pick the place on the map
+        </Text>
+
+        <View>
+          <MapView
+            initialRegion={mapRegion}
+            center={mapRegion}
+            style={styles.map}
+            zoomControlEnabled={true}
+            fullscreenControl={true}
+            showsUserLocation={true}
+            loadingIndicatorColor="#666666"
+            loadingBackgroundColor="#eeeeee"
+          >
+            <Marker
+              draggable
+              coordinate={pin}
+              onDragEnd={(e) => {
+                setPin({
+                  latitude: e.nativeEvent.coordinate.latitude,
+                  longitude: e.nativeEvent.coordinate.longitude,
+                });
+              }}
+            />
+          </MapView>
+        </View>
+
+        <View style={styles.background}>
+          <View style={styles.alignCenter}>
+            <Text style={styles.buttonOutlineTextBlueNoCenter2}>
+              Pick a category
+            </Text>
+          </View>
+
+          <Picker
+            selectedValue={selectedValue}
+            style={{ height: 50, width: 200, alignSelf: "center" }}
+            onValueChange={(itemValue, itemIndex) =>
+              setSelectedValue(itemValue)
+            }
+          >
+            {PickerItems}
+          </Picker>
+        </View>
+
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity onPress={showImagePicker} style={styles.button1}>
+            <Text style={styles.buttonOutlineTextWhite}>Select an image</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={addNewPlace} style={styles.button1}>
+            <Text style={styles.buttonOutlineTextWhite}>Add Place</Text>
+          </TouchableOpacity>
+          {isUploading ? (
+            <ActivityIndicator
+              size={"large"}
+              animating={true}
+              color={Colors.blue800}
+            />
+          ) : (
+            <></>
+          )}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
@@ -278,7 +282,6 @@ export default PlaceAddScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
     alignItems: "center",
     backgroundColor: "white",
   },
@@ -299,7 +302,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     width: 250,
     justifyContent: "center",
-    alignItems: "center",
+    alignSelf: "center",
     marginTop: 5,
   },
   icon: {
@@ -352,7 +355,7 @@ const styles = StyleSheet.create({
     color: "black",
   },
   inputContainer: {
-    width: "80%",
+    width: "100%",
     borderBottomWidth: 1,
     borderBottomColor: "grey",
     marginBottom: 15,
@@ -376,10 +379,10 @@ const styles = StyleSheet.create({
     alignSelf: "stretch",
     backgroundColor: "#000",
     height: 52,
-    flexDirection: "row", // row
+    flexDirection: "row",
     backgroundColor: "white",
     alignItems: "center",
-    justifyContent: "space-between", // center, space-around
+    justifyContent: "space-between",
     paddingLeft: 10,
     paddingRight: 10,
   },

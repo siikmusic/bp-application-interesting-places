@@ -280,7 +280,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  menuWrapper: {},
+  menuWrapper: {
+    bottom: 50,
+  },
   menuItem: {
     flexDirection: "row",
     paddingVertical: 15,

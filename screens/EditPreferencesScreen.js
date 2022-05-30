@@ -95,12 +95,12 @@ const InitPreferencesScreen = (props) => {
         extraData={preferences}
         renderItem={({ item }) => (
           <View style={styles.blueContainer}>
-            <View style={styles.horizontalAlign}>
-              <Text>{item}</Text>
-              <TouchableOpacity onPress={() => handleAdd(item)}>
+            <TouchableOpacity onPress={() => handleAdd(item)}>
+              <View style={styles.horizontalAlign}>
+                <Text>{item}</Text>
                 <Feather name="plus-circle" size={16} style={styles.icon} />
-              </TouchableOpacity>
-            </View>
+              </View>
+            </TouchableOpacity>
           </View>
         )}
       />
@@ -117,12 +117,12 @@ const InitPreferencesScreen = (props) => {
         numColumns={3}
         renderItem={({ item }) => (
           <View style={styles.redContainer}>
-            <View style={styles.horizontalAlign}>
-              <Text>{item}</Text>
-              <TouchableOpacity onPress={() => handleRemove(item)}>
+            <TouchableOpacity onPress={() => handleRemove(item)}>
+              <View style={styles.horizontalAlign}>
+                <Text>{item}</Text>
                 <Feather name="minus-circle" size={16} style={styles.icon} />
-              </TouchableOpacity>
-            </View>
+              </View>
+            </TouchableOpacity>
           </View>
         )}
       />

@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   FlatList,
   RefreshControl,
+  Dimensions,
 } from "react-native";
 import { auth, firestore } from "../firebase";
 import { useNavigation } from "@react-navigation/core";
@@ -357,7 +358,8 @@ const HomeScreen = () => {
       <View
         style={{
           height: 1,
-          width: "75%",
+          width:
+            Dimensions.get("screen").width - Dimensions.get("screen").width / 5,
           backgroundColor: "#888",
           opacity: 0.7,
           alignSelf: "center",
@@ -415,7 +417,12 @@ const HomeScreen = () => {
                 <>
                   {item.places.length > 0 ? (
                     <>
-                      <View style={{ marginLeft: 50, marginBottom: 10 }}>
+                      <View
+                        style={{
+                          marginLeft: Dimensions.get("screen").width / 10,
+                          marginBottom: 10,
+                        }}
+                      >
                         <Text style={styles.header}>{item.category}</Text>
                       </View>
                       <View style={styles.container}>

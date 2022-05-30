@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
   placeIcon: {
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 160,
+    marginTop: Dimensions.get("window").height / 5,
   },
   bottomView: {
     flex: 1,

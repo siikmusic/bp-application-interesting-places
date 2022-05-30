@@ -95,7 +95,12 @@ const EditProfileScreen = () => {
   };
   const submit = async () => {
     var fullName = "";
-    if (firstName) {
+    if (!firstName && !lastName) {
+    } else if (!firstName) {
+      fullName = " " + lastName;
+    } else if (!lastName) {
+      fullName = firstName + " ";
+    } else {
       fullName = firstName.concat(" ", lastName);
     }
     let isError = false;
@@ -121,6 +126,9 @@ const EditProfileScreen = () => {
                 fullName != null ? fullName : auth.currentUser.displayName,
               photoURL: url,
               phoneNumber: phone != null ? phone : auth.currentUser.phoneNumber,
+            })
+            .then(() => {
+              auth.currentUser.reload();
             })
 
             .catch(() => {
